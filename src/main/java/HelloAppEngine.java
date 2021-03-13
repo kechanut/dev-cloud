@@ -43,12 +43,14 @@ public class HelloAppEngine extends HttpServlet {
 	   	 DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
 	   	 // Create Petition
-	   	 for (int i = 0; i < 500; i++) {
-	   		 Entity e = new Entity("Petition", "P" + i); // à améliorer
+	   	 for (int i = 0; i < 500; i++) {	
+	   		 Entity e = new Entity("Petition"); // à améliorer
 	   		 int owner=r.nextInt(1000);
+	   		 e.setProperty("Key", new Date().getTime() + "Petition" + i);
+	   		 e.setProperty("Name", "Petition"+i);
 	   		 e.setProperty("Owner", "U" + owner);
 	   		 e.setProperty("Date", new Date()); //date aléatoire (import java util)
-	   		 e.setProperty("Body","ho yo");
+	   		 e.setProperty("Body","test message  "+ i);
 	   		 
 	   		 // Create random votants
 	   		 HashSet<String> fset = new HashSet<String>();

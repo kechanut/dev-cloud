@@ -1,116 +1,97 @@
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
-  <head>
-    <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />
-    <meta name="google-signin-client_id" content="927375242383-t21v9ml38tkh2pr30m4hqiflkl3jfohl.apps.googleusercontent.com">
-    
-  	<!-- Latest compiled and minified CSS -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-	
-	<!-- jQuery library -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-	
-	<!-- Popper JS -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-	
-	<!-- Latest compiled JavaScript -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-   
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
-	
-	
-	<script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
-	<script src="https://unpkg.com/mithril/mithril.js"></script>
-	
-	<script src="https://apis.google.com/js/api:client.js"></script>
-	
-	<script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>
-	
-   
-    <title>Hello App Engine</title>
-    
-    
-  </head>
- 
-  
-	<nav class="navbar navbar-expand-lg navbar-light bg-light">
-	 <a class="navbar-brand" href="#">Site de Petition</a>
-	 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-	   <span class="navbar-toggler-icon"></span>
-	 </button>
-	
-	 <div class="collapse navbar-collapse" id="navbarSupportedContent">
-	   <ul class="navbar-nav mr-auto">
-	     <li class="nav-item active">
-	       <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-	     </li>
-	     <li class="nav-item">
-	       <a class="nav-link" onclick="" href="#">Link</a>
-	      </li>
-	      <li class="nav-item dropdown">
-	        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-	          Dropdown
-	        </a>
-	      </li>
-	      <li class="nav-item">
-	        <a class="nav-link disabled" href="#">Disabled</a>
-	      </li>
-	         <li class="nav-item">
-	        <a class="nav-link g-signin2" data-onsuccess = "connexion" href="#">Se connecter</a>
-	      </li>
-	    </ul>
-	  </div>
-	</nav>
-	<body>
-    <h1>Hello App Engine!</h1>
+<head>
+<meta http-equiv="content-type"
+	content="application/xhtml+xml; charset=UTF-8" />
+<meta name="google-signin-client_id"
+	content="927375242383-t21v9ml38tkh2pr30m4hqiflkl3jfohl.apps.googleusercontent.com">
 
-    <table>
-      <tr>
-        <td colspan="2" style="font-weight:bold;">Available Servlets:</td>        
-      </tr>
-      <tr>
-        <td><a href='/hello'>The servlet</a></td>
-      </tr>
-    </table>
-    
-    <form method="post">
-	    <div>
-	        <label for="name">Nom :</label>
-	        <input type="text" id="name" name="petition_name">
-	    </div>
-	    <div>
-	        <label for="description">Description:</label>
-	        <input type="text" id="description" name="petition_description">
-	    </div>
-	    <div class="button">
-        	<button type="submit" onclick="Petition.addPetition()">Creer la pétition</button>
-    	</div>
-	</form>
-	
-	<div class="button">
-       	<button  onclick="showmessage()">show</button>
-   	</div>
-   	
-   	<div class="button">
-       	<button  onclick="Petition.allPetition()">show all petition</button>
-   	</div>
-   	
-   	<ul id="example-1">
-		 <li v-for="item in items">
-		  	<p>{{ console.log("test",items) }}</p>
- 		</li>
-	</ul>
-	<div id="example-2">
-  		 <li v-for="item in items">
-		  	<p>{{ items }}</p>
-		  	
- 		</li>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!-- Popper JS -->
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+
+
+<script defer
+	src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+<script src="https://unpkg.com/mithril/mithril.js"></script>
+
+<script src="https://apis.google.com/js/api:client.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>
+
+
+<title>Hello App Engine</title>
+
+
+</head>
+
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+	<a class="navbar-brand"  onclick="Petition.allPetition()" href="#">Site de Petition</a>
+	<button class="navbar-toggler" type="button" data-toggle="collapse"
+		data-target="#navbarSupportedContent"
+		aria-controls="navbarSupportedContent" aria-expanded="false"
+		aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+	</button>
+
+	<div class="collapse navbar-collapse" id="navbarSupportedContent">
+		<ul class="navbar-nav mr-auto">
+			<li class="nav-item active"><a class="nav-link" href="/">
+				<span class="sr-only">(current)</span></a>
+			</li>
+			<li class="nav-item"><a class="nav-link" onclick="Petition.BestPetition()" href="/#!/top">Meilleures petitions</a>
+			</li>
+			<li class="nav-item"><a class="nav-link"  href="/#!/votebyuser">Petition votées d'un utilisateur</a>
+			</li>
+			<li class="nav-item"><a class="nav-link"  href="/#!/petitionbyname">Petition par nom</a>
+		</ul>
 	</div>
-    
-    
-  </body>
-	<script>
+</nav>
+<body>
+
+	<!-- 
+	<form method="post">
+		<div>
+			<label for="name">Nom :</label> <input type="text" id="name"
+				name="petition_name">
+		</div>
+		<div>
+			<label for="description">Description:</label> <input type="text"
+				id="description" name="petition_description">
+		</div>
+		<div class="button">
+			<button type="submit" onclick="Petition.addPetition()">Creer
+				la pétition</button>
+		</div>
+	</form>
+	 -->
+
+	<div class="container" id ="result">
+	
+	
+	</div>
+
+
+
+<script>
+
 	
 		var extractStatus = function(xhr, xhrOptions) {
 		  return xhr.status != 200 ? xhr.status : xhr.responseText
@@ -131,6 +112,7 @@
 	    }
 	 	
 	 	var Petition = {
+	 			
 	 			list: [],
 	  	    	addPetition : function(){
 	  	    		var mail =  encodeURIComponent(User.userInformation.mail);
@@ -145,70 +127,232 @@
 			        	// m.redraw(true) 
 			        })
 	  	    	},
-	 	
+	 			
 			 	allPetition : function(){
-			 		
+			 		console.log("dans all petition");
 			        return m.request({
 			            method: "GET",
 			            url: "_ah/api/myApi/v1/allPetition",
 			        })
 			        .then(function(result) {
-			        	//Petition.list = result.items;
-			        	console.log("result", result.items)
 			        	Petition.list = result.items
+			        	m.redraw(true)
 	     			})
-			 	}
+			 	},
+	  	    	
+			 	petitionVotedByUser : function(){	
+			 		this.list = [];
+			 		var name = document.getElementById("nom_user").value;
+			 	    console.log("dans petitionUser" + name);
+			 	    if(name != null){
+			 	    	return m.request({
+				            method: "GET",
+				            url: "_ah/api/myApi/v1/petitionVotedByUser/"+name,
+				        })
+				        .then(function(result) {
+				        	Petition.list = result.items
+				        	m.redraw(true)
+		     			})
+			 	    }
+			 		
+			 	},	
+			 	
+			 	petitionByName : function(name){
+			 		return m.request({
+			            method: "GET",
+			            url: "_ah/api/myApi/v1/petitionByName/"+name,
+			        })
+			        .then(function(result) {
+			        	Petition.list = result.items
+			        	m.redraw(true)
+	     			})
+			 	},	
+			 	BestPetition : function(){
+			 		console.log('Bestpetition')
+			 		return m.request({
+			            method: "GET",
+			            url: "_ah/api/myApi/v1/BestPetition/",
+			            
+			        })
+			        .then(function(result) {
+			        	Petition.list = result.items
+			        	m.redraw(true)
+	     			})
+			 	}	
 	  	    }
-	 	
-	 	var VuePetition = {
- 			 oninit: Petition.allPetition,
- 			
- 			view: function() {
- 			   	return m('div', [
- 				  m('div',{class:'subtitle'},"Liste Petition"),
- 				  m('table', {class:'table is-striped'},[
- 				    m('tr', [
- 				      m('th', {width:"20px"}, "Name"),
- 				      m('th', {width:"50px"}, "Score"),
- 				    ]),
- 				    Petition.list.map(function(item) {
- 				    	console.log(item)
- 				      return m("tr", [
- 				    	  
- 			  	        m('td', m('label', item.properties.Body)),
- 			  	    	m('td', m('label', item.properties.Date)),
- 				      ])
- 				    })
- 				   ])
- 				 ])
- 			  } 
- 			
-	 	}
-	 	var HomePage = {
-	 			
-	 	}
-	 	m.mount(document.body, VuePetition)	
-	 	
-	 	/*var example1 = new Vue({
-	 		  el: '#example-1',
-	 		  data:{
-	 			 items : [Petition.allPetition()]
-	 		  }
-	 			 
-	 		})
+	 		
+			var VueAllPetition = {
+	 			oninit : Petition.allPetition(),
+				view: function() {
+					
+				   	return m('div', [
+						m('div',{class:'subtitle'},"Liste petition de la plus récente à la plus ancienne"),
+						m('table', {class:'table is-striped'},[
+					 		m('tr', [
+									m('th', {width:"20px"}, "Name"),
+									m('th', {width:"20px"}, "Body"),
+									m('th', {width:"50px"}, "Date"),
+									
+						    ]),
+						    
+						    Petition.list.map(function(item) {
+								return m("tr", [
+									m('td', m('label', item.properties.Name)),
+									m('td', m('label', item.properties.Body)),
+									m('td', m('label', item.properties.Date)),
+								 	
+								])
+						    })
+						]),
+						
+					 ])
+				  } 
+			}
 	 	
 	 	
-	 	var example2 = new Vue({
-	 		  el: '#example-2',
-	 		  data: {
-	 		    items: [
-	 		      { message: 'Foo' },
-	 		      { message: 'Bar' }
-	 		    ]
-	 		  }
-	 		})
-	 	*/
+		 	var VuelistPetitionVotedByUser = {
+					view: function() {
+					   	return m('div', [
+							m('div',{class:'subtitle'},"Liste Petition signé par un utilisateur"),
+							
+							m('div',
+									  [
+									    m('label', {'for':'name'}, 
+									      'Nom :'
+									    ),
+									    m('input', {'type':'text','id':'nom_user','name':'petition_name'})
+									  ]
+							),
+							m('div', {'class':'button'}, 
+									  m('button', { onclick: function(e) {Petition.petitionVotedByUser()}},
+									    'Rechercher'
+									  )
+							),
+							m('table', {class:'table is-striped'},[
+						 		m('tr', [
+										m('th', {width:"20px"}, "Name"),
+										m('th', {width:"20px"}, "Body"),
+										m('th', {width:"50px"}, "Date"),
+										
+							    ]),
+							    
+							    Petition.list.map(function(item) {
+									return m("tr", [
+										m('td', m('label', item.properties.Name)),
+										m('td', m('label', item.properties.Body)),
+										m('td', m('label', item.properties.Date)),
+									])
+							    })
+							]),
+							
+						 ])
+					  } 
+			}
+	 		
+	 
+		 	var VuePetition = {
+					view: function() {
+						
+					   	return m('div', [
+							m('div',{class:'subtitle'},"Recherche par nom"),
+							
+							m('div',
+									  [
+									    m('label', {'for':'name'}, 
+									      'Nom :'
+									    ),
+									    m('input', {'type':'text','id':'nom_petition','name':'petition_name'})
+									  ]
+							),
+							m('div', {'class':'button'}, 
+									  m('button', { onclick: function(e) {Petition.petitionByName(document.getElementById("nom_petition").value)}},
+									    'Rechercher'
+									  )
+							),
+							m('table', {class:'table is-striped'},[
+						 		m('tr', [
+										m('th', {width:"20px"}, "Name"),
+										m('th', {width:"20px"}, "Body"),
+										m('th', {width:"50px"}, "Date"),
+										
+							    ]),
+							    
+							    Petition.list.map(function(item) {
+									return m("tr", [
+										m('td', m('label', item.properties.Name)),
+										m('td', m('label', item.properties.Body)),
+										m('td', m('label', item.properties.Date)),
+										
+									 	
+									])
+							    })
+							]),
+							m('button',{
+								class: 'button is-link',
+								onclick: function(e) {}
+						    	},
+						    "Voir plus"),
+							
+						 ])
+					  } 
+			}
+	 	
+	 	
+		 	var VueBestPetition = {
+		 			oninit: Petition.BestPetition(),
+					view: function() {
+					   	return 	m('div', [
+							m('div',{class:'subtitle'},"Liste des meilleures Petitions"),
+							m('table', {class:'table is-striped'},[
+						 		m('tr', [
+										m('th', {width:"20px"}, "Name"),
+										m('th', {width:"20px"}, "Body"),
+										m('th', {width:"50px"}, "Date"),
+										m('th', {width:"50px"}, "Nb Vote"),
+										
+							    ]),
+							    
+							    Petition.list.map(function(item) {
+							    	
+									return m("tr", [
+										m('td', m('label', item.properties.Name)),
+										m('td', m('label', item.properties.Body)),
+										m('td', m('label', item.properties.Date)),
+										m('td', m('label', item.properties.nbvotants)),
+									 	
+									])
+							    })
+							]),
+							m('button',{
+								class: 'button is-link',
+								onclick: function(e) {}
+						    	},
+						    "Voir plus"),
+							
+						 ])
+					  } 
+			}
+	 	
+	 	
+	 
+		var elem = 	document.getElementById("result");
+	 	//m.mount(elem, VueBestPetition)	
+	 	//m.mount(elem, VueBestPetition)
+	 	//m.mount(elem2, VueBestPetition)	
+	 	
+	 
   		
+	 	m.route(elem, "/", {
+
+	   		 '/': VueAllPetition,
+	   		 '/top': VueBestPetition,
+	   		 '/votebyuser': VuelistPetitionVotedByUser,
+	   		 '/petitionbyname/': VuePetition,
+		})
+		
+	 	
+	 	
+	 	
   
   		var User = {
   				userInformation: {
@@ -235,8 +379,13 @@
   	      console.log(error); 
   	    }
   	    
+  	    
+  	    
+  	    
   
 </script>
-<script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
-  
+</body>
+<script src="https://apis.google.com/js/platform.js?onload=renderButton"
+	async defer></script>
+
 </html>
