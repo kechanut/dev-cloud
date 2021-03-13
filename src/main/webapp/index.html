@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />
+    <meta name="google-signin-client_id" content="927375242383-t21v9ml38tkh2pr30m4hqiflkl3jfohl.apps.googleusercontent.com">
+    
+  	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+	
+	<!-- jQuery library -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	
+	<!-- Popper JS -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+	
+	<!-- Latest compiled JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+   
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+	
+	
+	<script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+	<script src="https://unpkg.com/mithril/mithril.js"></script>
+	
+	<script src="https://apis.google.com/js/api:client.js"></script>
+	
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>
+	
+   
+    <title>Hello App Engine</title>
+    
+    
+  </head>
+ 
+  
+	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+	 <a class="navbar-brand" href="#">Site de Petition</a>
+	 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+	   <span class="navbar-toggler-icon"></span>
+	 </button>
+	
+	 <div class="collapse navbar-collapse" id="navbarSupportedContent">
+	   <ul class="navbar-nav mr-auto">
+	     <li class="nav-item active">
+	       <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+	     </li>
+	     <li class="nav-item">
+	       <a class="nav-link" onclick="" href="#">Link</a>
+	      </li>
+	      <li class="nav-item dropdown">
+	        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	          Dropdown
+	        </a>
+	      </li>
+	      <li class="nav-item">
+	        <a class="nav-link disabled" href="#">Disabled</a>
+	      </li>
+	         <li class="nav-item">
+	        <a class="nav-link g-signin2" data-onsuccess = "connexion" href="#">Se connecter</a>
+	      </li>
+	    </ul>
+	  </div>
+	</nav>
+	<body>
+    <h1>Hello App Engine!</h1>
+
+    <table>
+      <tr>
+        <td colspan="2" style="font-weight:bold;">Available Servlets:</td>        
+      </tr>
+      <tr>
+        <td><a href='/hello'>The servlet</a></td>
+      </tr>
+    </table>
+    
+    <form method="post">
+	    <div>
+	        <label for="name">Nom :</label>
+	        <input type="text" id="name" name="petition_name">
+	    </div>
+	    <div>
+	        <label for="description">Description:</label>
+	        <input type="text" id="description" name="petition_description">
+	    </div>
+	    <div class="button">
+        	<button type="submit" onclick="Petition.addPetition()">Creer la pétition</button>
+    	</div>
+	</form>
+	
+	<div class="button">
+       	<button  onclick="showmessage()">show</button>
+   	</div>
+   	
+   	<div class="button">
+       	<button  onclick="Petition.allPetition()">show all petition</button>
+   	</div>
+   	
+   	<ul id="example-1">
+		 <li v-for="item in items">
+		  	<p>{{ console.log("test",items) }}</p>
+ 		</li>
+	</ul>
+	<div id="example-2">
+  		 <li v-for="item in items">
+		  	<p>{{ items }}</p>
+		  	
+ 		</li>
+	</div>
+    
+    
+  </body>
+	<script>
+	
+		var extractStatus = function(xhr, xhrOptions) {
+		  return xhr.status != 200 ? xhr.status : xhr.responseText
+		}
+	
+	 	function showmessage(){
+	    	console.log("debut message");
+	    	 return m.request({
+		            method: "GET",
+		            url: "_ah/api/myApi/v1/showmessage",
+		            extract: extractStatus
+		     })
+		     .then(function(result) {
+		            var message  = result;
+		        	console.log("message :",message)
+		        	// m.redraw(true) 
+		        })
+	    }
+	 	
+	 	var Petition = {
+	 			list: [],
+	  	    	addPetition : function(){
+	  	    		var mail =  encodeURIComponent(User.userInformation.mail);
+	  	    		var name = document.getElementById("name").value;
+	  	    		var desc = document.getElementById("description").value;
+			        return m.request({
+			            method: "POST",
+			            url: "_ah/api/myApi/v1/addpetition/"+name+"/"+desc+"/"+mail,
+			        })
+			        .then(function(result) {
+			        	console.log("message : ça marche")
+			        	// m.redraw(true) 
+			        })
+	  	    	},
+	 	
+			 	allPetition : function(){
+			 		
+			        return m.request({
+			            method: "GET",
+			            url: "_ah/api/myApi/v1/allPetition",
+			        })
+			        .then(function(result) {
+			        	//Petition.list = result.items;
+			        	console.log("result", result.items)
+			        	Petition.list = result.items
+	     			})
+			 	}
+	  	    }
+	 	
+	 	var VuePetition = {
+ 			 oninit: Petition.allPetition,
+ 			
+ 			view: function() {
+ 			   	return m('div', [
+ 				  m('div',{class:'subtitle'},"Liste Petition"),
+ 				  m('table', {class:'table is-striped'},[
+ 				    m('tr', [
+ 				      m('th', {width:"20px"}, "Name"),
+ 				      m('th', {width:"50px"}, "Score"),
+ 				    ]),
+ 				    Petition.list.map(function(item) {
+ 				    	console.log(item)
+ 				      return m("tr", [
+ 				    	  
+ 			  	        m('td', m('label', item.properties.Body)),
+ 			  	    	m('td', m('label', item.properties.Date)),
+ 				      ])
+ 				    })
+ 				   ])
+ 				 ])
+ 			  } 
+ 			
+	 	}
+	 	var HomePage = {
+	 			
+	 	}
+	 	m.mount(document.body, VuePetition)	
+	 	
+	 	/*var example1 = new Vue({
+	 		  el: '#example-1',
+	 		  data:{
+	 			 items : [Petition.allPetition()]
+	 		  }
+	 			 
+	 		})
+	 	
+	 	
+	 	var example2 = new Vue({
+	 		  el: '#example-2',
+	 		  data: {
+	 		    items: [
+	 		      { message: 'Foo' },
+	 		      { message: 'Bar' }
+	 		    ]
+	 		  }
+	 		})
+	 	*/
+  		
+  
+  		var User = {
+  				userInformation: {
+  						"ID" : "",
+  						"nom" : "",
+  						"mail" : ""
+  				}
+  		}
+  		
+  		
+  		
+  		
+  		function connexion(googleUser){
+  				User.userInformation.ID = googleUser.getBasicProfile().getId()
+  				User.userInformation.nom = googleUser.getBasicProfile().getName()
+  				User.userInformation.mail = googleUser.getBasicProfile().getEmail()
+  				console.log(User)
+  		}
+  		
+  		function onSuccess(googleUser) {
+  	      console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
+  	    }
+  	    function onFailure(error) {
+  	      console.log(error); 
+  	    }
+  	    
+  
+</script>
+<script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
+  
+</html>
