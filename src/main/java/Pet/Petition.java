@@ -10,8 +10,10 @@ import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.config.Named;
+import com.google.api.server.spi.config.Nullable;
 //import com.google.api.server.spi.config.Named;
 import com.google.api.server.spi.config.ApiMethod.HttpMethod;
+import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -76,6 +78,8 @@ public class Petition {
 	@ApiMethod(name = "addpetition", httpMethod = HttpMethod.POST)
 	public Entity addpetition(@Named("name") String name,@Named("desc") String desc, @Named("mail") String mailCreateur) {
 		//Entity e = new Entity("Petition", Long.MAX_VALUE - (new Date().getTime()+":"+ mailCreateur)));
+		
+		
 		Entity e = new Entity("Petition");
 		e.setProperty("Name", name);
 		e.setProperty("description", desc);
@@ -91,6 +95,7 @@ public class Petition {
 	
 	@ApiMethod(name = "allPetition", httpMethod = HttpMethod.GET)
 	public List<Entity> allPetition() {
+		long t1=System.currentTimeMillis();
 		System.out.println("test allpetition");
 		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
 		Query q = new Query("Petition").addSort("Key", SortDirection.DESCENDING);
@@ -98,6 +103,8 @@ public class Petition {
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		PreparedQuery pq = datastore.prepare(q);
 		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(10));
+		long t2=System.currentTimeMillis();
+		System.out.println("query all pétition:"+(t2-t1));
 		return result;
 	}
 	
@@ -111,6 +118,7 @@ public class Petition {
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		PreparedQuery pq = datastore.prepare(q);
 		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(10));
+		
 		return result;
 	}
 	
@@ -128,14 +136,37 @@ public class Petition {
 	}
 	
 	@ApiMethod(name = "BestPetition", httpMethod = HttpMethod.GET)
-	public List<Entity> BestPetition() {
+	public List<Entity> BestPetition(@Nullable @Named("index") String  cursorString) {
 		System.out.println("BestPetition");
+		System.out.println("sursor" + cursorString);
+		long t1=System.currentTimeMillis();
 		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
 		Query q = new Query("Petition").addSort("nbvotants", SortDirection.DESCENDING);;
 		
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		PreparedQuery pq = datastore.prepare(q);
-		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(10));
+		
+		FetchOptions fetchOptions = FetchOptions.Builder.withLimit(10);
+	    
+	    if (cursorString != null) {
+	    	fetchOptions.startCursor(Cursor.fromWebSafeString(cursorString));
+		}
+		List<Entity> result = pq.asList(fetchOptions);
+		long t2=System.currentTimeMillis();
+		System.out.println("query meilleure pétition:"+(t2-t1));
+		return result;
+	}
+	
+	@ApiMethod(name = "detailPetition", httpMethod = HttpMethod.GET)
+	public Entity detailPetition(@Named("id") String id) {
+		System.out.println("detail");
+		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
+		Query q = new Query("Petition").setFilter(new FilterPredicate("Key", FilterOperator.EQUAL, id));
+		
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+		PreparedQuery pq = datastore.prepare(q);
+		Entity result = pq.asSingleEntity();
+		System.out.println(result);
 		return result;
 	}
 	
