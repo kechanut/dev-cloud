@@ -1,5 +1,6 @@
 package Pet;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -20,10 +21,13 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortDirection;
 
+import java.util.ArrayList;
+import java.util.Calendar;
 /*
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.PreparedQuery;
@@ -33,6 +37,7 @@ import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortDirection;
 */
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
@@ -75,17 +80,23 @@ public class Petition {
 
 	*/
 	
+	
+	
 	@ApiMethod(name = "addpetition", httpMethod = HttpMethod.POST)
 	public Entity addpetition(@Named("name") String name,@Named("desc") String desc, @Named("mail") String mailCreateur) {
 		//Entity e = new Entity("Petition", Long.MAX_VALUE - (new Date().getTime()+":"+ mailCreateur)));
-		
-		
+		System.out.println("name :"+name );
+		System.out.println("desc :"+desc );
+		Date d = new Date();
 		Entity e = new Entity("Petition");
+		e.setProperty("Key", d.getTime() + name);
 		e.setProperty("Name", name);
-		e.setProperty("description", desc);
-		e.setProperty("nbVote", 0);
+		e.setProperty("Body", desc);
+		e.setProperty("nbvotants", 0);
+		e.setProperty("votants", new HashSet<String>());
 		e.setProperty("createur", mailCreateur);
-		e.setProperty("date", new Date());
+		e.setProperty("jour", new SimpleDateFormat("dd/MM/yyyy").format(d));
+		e.setProperty("heure", new SimpleDateFormat("HH:mm").format(d));
 
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		datastore.put(e);
@@ -123,18 +134,32 @@ public class Petition {
 	}
 	
 	@ApiMethod(name = "petitionByName", httpMethod = HttpMethod.GET)
-	public List<Entity> petitionByName(@Named("name") String name) {
+	public Entity petitionByName(@Named("name") String name) {
 		
-		System.out.println("test"+name);
 		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
 		Query q = new Query("Petition").setFilter(new FilterPredicate("Name", FilterOperator.EQUAL, name));
 		
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		PreparedQuery pq = datastore.prepare(q);
-		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(10));
+		Entity result = pq.asSingleEntity();
+		System.out.println(result);
 		return result;
 	}
 	
+	@ApiMethod(name = "myPetition", httpMethod = HttpMethod.GET)
+	public List<Entity> myPetition(@Named("name") String name) {
+		
+		System.out.println("test"+name);
+		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
+		Query q = new Query("Petition").setFilter(new FilterPredicate("createur", FilterOperator.EQUAL, name)).addSort("Key", SortDirection.DESCENDING);
+		
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+		PreparedQuery pq = datastore.prepare(q);
+		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(10));
+		
+		return result;
+	}
+
 	@ApiMethod(name = "BestPetition", httpMethod = HttpMethod.GET)
 	public List<Entity> BestPetition(@Nullable @Named("index") String  cursorString) {
 		System.out.println("BestPetition");
@@ -170,7 +195,57 @@ public class Petition {
 		return result;
 	}
 	
+	@ApiMethod(name = "dejavote", httpMethod = HttpMethod.GET)
+	public Entity dejavote(@Named("id") String id, @Named("mail") String mail) {
+		System.out.println("id : "+ id);
+		System.out.println("mail : "+ mail);
+		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
+		Query q = new Query("Petition").setFilter(CompositeFilterOperator.and(
+					new FilterPredicate("Key", FilterOperator.EQUAL, id), 
+					new FilterPredicate("votants", FilterOperator.EQUAL, mail)
+				));
+		
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+		PreparedQuery pq = datastore.prepare(q);
+		Entity entity = pq.asSingleEntity();
+		
+		System.out.println("entity : "+ entity);
+		return entity;
+	}
 	
-	
+	@ApiMethod(name = "votePetition", httpMethod = HttpMethod.POST)
+	public Entity votePetition(@Named("id") String id, @Named("mail") String mail) {
+		System.out.println("id : "+ id);
+		System.out.println("mail : "+ mail);
+		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
+		Query q = new Query("Petition").setFilter(CompositeFilterOperator.and(
+					new FilterPredicate("Key", FilterOperator.EQUAL, id), 
+					new FilterPredicate("votants", FilterOperator.EQUAL, mail)
+				));
+		
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+		PreparedQuery pq = datastore.prepare(q);
+		Entity entity = pq.asSingleEntity();
+		
+		System.out.println("entity : "+ entity);
+		
+		if (entity == null) {
+			
+			Query query = new Query("Petition").setFilter(new FilterPredicate("Key", FilterOperator.EQUAL, id));
+			PreparedQuery prq = datastore.prepare(query);
+			Entity entitymodif = prq.asSingleEntity();
+			
+			long nbVote = (long)entitymodif.getProperty("nbvotants");
+			entitymodif.setProperty("nbvotants", nbVote + 1);
+			
+			ArrayList<String> listvotants = (ArrayList<String>)entitymodif.getProperty("votants");
+			listvotants.add(mail);
+			System.out.println("list votants : "+ listvotants);
+			entitymodif.setProperty("votants", listvotants);
+			datastore.put(entitymodif);
+		}
+		return entity;
+	}
+
 	
 }

@@ -4,8 +4,12 @@
 <head>
 <meta http-equiv="content-type"
 	content="application/xhtml+xml; charset=UTF-8" />
+<!--
 <meta name="google-signin-client_id"
-	content="927375242383-t21v9ml38tkh2pr30m4hqiflkl3jfohl.apps.googleusercontent.com">
+	  content="927375242383-t21v9ml38tkh2pr30m4hqiflkl3jfohl.apps.googleusercontent.com">
+	-->	
+	<meta name="google-signin-client_id"
+	content="240163233393-snsimlh3n13plcjga3kklclio835f2dc.apps.googleusercontent.com">
 
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet"
@@ -61,7 +65,8 @@
 			<li class="nav-item"><a class="nav-link"  href="/#!/votebyuser">Petition votées d'un utilisateur</a>
 			</li>
 			<li class="nav-item"><a class="nav-link"  href="/#!/petitionbyname">Petition par nom</a></li>
-			<li class="nav-item"><a class="nav-link g-signin2" data-onsuccess = "connexion" href="#">Se connecter</a></li>
+			<li class="nav-item"><a class="nav-link"  href="/#!/mypetition">Mes petitions</a></li>
+			<div class="nav-item g-signin2"  data-onsuccess="onSignIn">Se connecter</div>
 		</ul>
 	</div>
 </nav>
@@ -83,15 +88,42 @@
 		</div>
 	</form>
 	 -->
-
-	<div class="container" id ="result">
-	
-	
-	</div>
+	<div class="container" id ="divlogin"></div>
+	<div class="container" id ="result"></div>
 
 
 
 <script>
+		
+
+
+
+		var User = {
+				userInformation: {
+						"ID" : "",
+						"nom" : "",
+						"mail" : ""
+				}
+		}
+		
+		
+		
+		
+		function onSignIn(googleUser){
+			 	var profile = googleUser.getBasicProfile();
+				User.userInformation.ID = profile.getId()
+				User.userInformation.nom = profile.getName()
+				User.userInformation.mail = profile.getEmail()
+				console.log(User)
+		}
+		console.log(User)
+		function onSuccess(googleUser) {
+	    console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
+	  }
+	  function onFailure(error) {
+	    console.log(error); 
+	  }
+  
 
 	
 		var extractStatus = function(xhr, xhrOptions) {
@@ -112,12 +144,15 @@
 		        })
 	    }
 	 	
+	 	
+	 	
 	 	var Petition = {
 	 			
 	 			current :{
 	 				"id":"",
 	 				"key":"",
 	 				"name":"",
+	 				"createur":"",
 	 				"body":"",
 	 				"date":"",
 	 				"nbvotants":"",
@@ -130,12 +165,15 @@
 	  	    		var mail =  encodeURIComponent(User.userInformation.mail);
 	  	    		var name = document.getElementById("name").value;
 	  	    		var desc = document.getElementById("description").value;
+	  	    		console.log("name: " +name)
+	  	    		console.log("desc: " +desc)
 			        return m.request({
 			            method: "POST",
 			            url: "_ah/api/myApi/v1/addpetition/"+name+"/"+desc+"/"+mail,
 			        })
 			        .then(function(result) {
-			        	console.log("message : ça marche")
+			        	console.log("message : ça marche");
+			        	m.route.set("/mypetition");
 			        	// m.redraw(true) 
 			        })
 	  	    	},
@@ -153,9 +191,8 @@
 			 	},
 			 	
 			 	listPetitionVotedByUser: [],
-			 	petitionVotedByUser : function(){	
+			 	petitionVotedByUser : function(name){	
 			 		this.list = [];
-			 		var name = document.getElementById("nom_user").value;
 			 	    console.log("dans petitionUser" + name);
 			 	    if(name != null){
 			 	    	return m.request({
@@ -163,7 +200,13 @@
 				            url: "_ah/api/myApi/v1/petitionVotedByUser/"+name,
 				        })
 				        .then(function(result) {
-				        	Petition.listPetitionVotedByUser = result.items
+				        	if (result != null){
+				        		Petition.listPetitionVotedByUser = result.items
+				        	}else{
+				        		Petition.listPetitionVotedByUser.clear()
+				        	}
+				        	console.log("result list petition voted by user"+ result)
+				        	
 				        	m.redraw(true)
 		     			})
 			 	    }
@@ -177,8 +220,10 @@
 			            url: "_ah/api/myApi/v1/petitionByName/"+name,
 			        })
 			        .then(function(result) {
-			        	Petition.listPetitionByName = result.items
+			        	console.log(result)
+			        	Petition.listPetitionByName = result
 			        	m.redraw(true)
+			        	console.log("list petition by name:"+Petition.listPetitionByName)
 	     			})
 			 	},	
 			 	listBestPetition: [],
@@ -190,6 +235,7 @@
 			            
 			        })
 			        .then(function(result) {
+			        	console.log("result best petition"+result.items)
 			        	Petition.listBestPetition = result.items
 			        	m.redraw(true)
 	     			})
@@ -204,33 +250,86 @@
 			            
 			        })
 			        .then(function(result) {
+			        	console.log("result : "+result.properties.votants)
 			        	
-			        	if (result != null){
-			        		Petition.current.id = result.key.id,
-			        		Petition.current.key = result.properties.Key,
-				        	Petition.current.name = result.properties.Name,
-				        	Petition.current.body = result.properties.Body,
-				        	Petition.current.date = result.properties.Date,
-				        	Petition.current.nbvotants = result.properties.nbvotants,
-				        	Petition.current.votants = result.properties.votants
-			        	}
+			        	AddOnCurrent(result);
 	     			})
 			 	},
 			 	
-			 	votePetition : function(key){
-			 		console.log("dans vote petition")
+			 	votePetition : function(id, mail){
 			 		return m.request({
 			            method: "POST",
-			            url: "_ah/api/myApi/v1/votePetition/"+key+"/"+User.userInformation.mail,
+			            url: "_ah/api/myApi/v1/votePetition/"+id+"/"+mail,
 			            
 			            
 			        })
 			        .then(function(result) {
+			        	 if(result == null){
+	 						 Location.reload()
+	 					 }else{
+	 						 alert("Vous avez deja voté pour cette petition");
+	 					 }
 			        	
+	     			})
+			 	},
+			 	
+			 	listmypetitioncreate: [],
+			 	myPetition : function(key){
+			 		console.log("dans vote petition")
+			 		return m.request({
+			            method: "GET",
+			            url: "_ah/api/myApi/v1/myPetition/"+User.userInformation.mail,
+			            
+			            
+			        })
+			        .then(function(result) {
+			        	Petition.listmypetitioncreate = result.items
 			        	
 	     			})
 			 	}	
 	  	    }
+	 	
+// ==================== Verification =========================>>
+	 	
+	 	
+		 	var Verification = {
+		 			nomExistant : function(name){
+		 				 return m.request({
+			  		            method: "GET",
+			  		            url: "_ah/api/myApi/v1/petitionByName/"+name,
+		  		         })
+		  		         .then(function(result){
+		  		        	 console.log("result" + result)
+		 					 if(result == null){
+		 						 console.log("dans if verif")
+		 						 Petition.addPetition();
+		 					 }else{
+		 						 alert("Ce nom existe déjà");
+		 					 }
+		 				 })
+		 			},
+		 	
+		 			verif : function(id, mail){
+		 				console.log("is in petition -> petition : "+ id)
+		 				console.log("is in petition -> user : "+ mail)
+		 				 return m.request({
+			  		            method: "GET",
+			  		            url: "_ah/api/myApi/v1/dejavote/"+id+"/"+mail,
+		  		         })
+		  		         .then(function(result){
+		 					 if(result == null){
+		 						 Petition.votePetition(id, mail);
+		 					 }else{
+		 						 alert("Vous avez deja voté pour cette petition");
+		 					 }
+		 				 })
+		 			}
+		 	}
+	 	
+	 	
+	 	
+	 	
+//========================= VUE ======================>>	 	
 	 		
 			var VueAllPetition = {
 	 			oninit : Petition.allPetition(),
@@ -279,7 +378,7 @@
 									  ]
 							),
 							m('div', {'class':'button'}, 
-									  m('button', { onclick: function(e) {Petition.petitionVotedByUser()}},
+									  m('button', { onclick: function(e) {Petition.petitionVotedByUser(document.getElementById("nom_user").value)}},
 									    'Rechercher'
 									  )
 							),
@@ -335,7 +434,7 @@
 										
 							    ]),
 							    
-							    Petition.listPetitionByName.map(function(item) {
+							   Petition.listPetitionByName.map(function(item) {
 									return m("tr", [
 										m('td', m('label', item.properties.Name)),
 										m('td', m('label', item.properties.Body)),
@@ -369,7 +468,7 @@
 		 				
 		 			},
 					view: function(ctrl) {
-						console.log(ctrl.attrs.index)
+						
 					   	return 	m('div', [
 							m('div',{class:'subtitle'},"Liste des meilleures Petitions"),
 							m('table', {class:'table is-striped'},[
@@ -412,15 +511,30 @@
 	 	
 		 	var VueDetailPetition = {
 	 				oninit: function(vnode){ 
-	 					console.log(vnode)
+	 					console.log("in detail petition vue")
+	 					console.log("vnode : "+vnode)
+	 					console.log("vnode key : "+vnode.attrs.key)
 						Petition.detailPetition(vnode.attrs.key);
+	 					console.log("petition current : "+Petition.current.key)
 	 				},
 					view: function() {
 					   	return 	m('div', [
 							m('div',{class:'subtitle'},"vue detail d'une petition"),
-							m('a', {'class':'nav-link','href':'#!/vote/'+Petition.current.key}, 
-									'Voter pour cette petition'
+						
+							
+							
+							m('a', {'class':'button ',
+								onclick   : function(){
+									 //Verification.verif(Petition.current.key, User.userInformation.mail);
+									Petition.votePetition(Petition.current.key, User.userInformation.mail);
+						              
+								},
+								
+								}, 
+								'Voter pour cette petition'
 							),
+							
+							
 							m('table', {class:'table is-striped'},[
 						 		m('tr', [
 										m('th', {width:"20px"}, "Name"),
@@ -454,11 +568,126 @@
 			}
 	 	
 	 	
+	 	var signInVue = {
+	 			
+	 			view: function() {
+				   	return 	m('div', [
+				   		m('a', {'class':'button ',
+							
+							'href':'#!/addPetition/'
+							}, 
+							'Ajouter une petition'
+						),
+					 ])
+				  } 
+	 		
+	 	}
+	 	
+		var VueFormAddPetition = {
+	 			
+	 			view: function() {
+				   	return 	m('form',
+				   		  [
+				   		    m('hr'),
+				   		    m('div', {'class':'container'},
+				   		      [
+				   		        m('label', {'for':'uname'}, 
+				   		          m('strong', 
+				   		            'Nom'
+				   		          )
+				   		        ),
+				   		        m('input', {'type':'text','id':'name','placeholder':'Entrer le nom de la petition','name':'uname','required':'required'}),
+				   		        m('br'),
+				   		        m('label', {'for':'psw'}, 
+				   		          m('strong', 
+				   		            'Description'
+				   		          )
+				   		        ),
+				   		        m('input', {'type':'text','id':'description','placeholder':'Décrire votre petition','name':'psw','required':'required'}),
+				   		        m('br'),
+				   		     	m('button',{
+									class: 'button is-link',
+									onclick: function() {Verification.nomExistant(document.getElementById("name").value)}
+							    	},
+							    "Ajouter petition"),
+				   		      ]
+				   		    )
+				   		  ]
+				   		)
+				   	 
+				  } 
+	 		
+	 	}
+			
+		var VuemyPetition = {
+	 			oninit : function(){
+	 				console.log(User.userInformation.mail)
+	 				console.log("USer mail : "+encodeURIComponent(User.userInformation.mail))
+	 				Petition.petitionVotedByUser(User.userInformation.mail); 
+	 				Petition.myPetition(User.userInformation.mail);
+	 			},
+				view: function() {
+					
+				   	return m('div', [
+						m('div',{class:'subtitle'},"Liste mes petitions créées"),
+						m('table', {class:'table is-striped'},[
+					 		m('tr', [
+									m('th', {width:"20px"}, "Name"),
+									m('th', {width:"20px"}, "Body"),
+									m('th', {width:"50px"}, "Date"),
+									
+						    ]),
+						    
+						    Petition.listmypetitioncreate.map(function(item) {
+						    	console.log(item)
+								return m("tr", [
+									m('td', m('label', item.properties.Name)),
+									m('td', m('label', item.properties.Body)),
+									m('td', m('label', item.properties.Date)),
+									m('a', {'class':'nav-link','href':'#!/detailpetition/'+item.properties.Key}, 
+											'Voir'
+									)
+								 	
+								])
+						    })
+						]),
+						
+						
+						m('div',{class:'subtitle'},"Liste mes petitions votées"),
+						m('table', {class:'table is-striped'},[
+					 		m('tr', [
+									m('th', {width:"20px"}, "Name"),
+									m('th', {width:"20px"}, "Body"),
+									m('th', {width:"50px"}, "Date"),
+									
+						    ]),
+						    
+						    Petition.listPetitionVotedByUser.map(function(item) {
+						    	console.log(item)
+								return m("tr", [
+									m('td', m('label', item.properties.Name)),
+									m('td', m('label', item.properties.Body)),
+									m('td', m('label', item.properties.Date)),
+									m('a', {'class':'nav-link','href':'#!/detailpetition/'+item.properties.Key}, 
+											'Voir'
+									)
+								 	
+								])
+						    })
+						]),
+						
+						
+					 ])
+				  } 
+			}
+	 	
+	 	
 	 
 		var elem = 	document.getElementById("result");
+	 	var elem2 = document.getElementById("divlogin");
 	 	//m.mount(elem, VueBestPetition)	
 	 	//m.mount(elem, VueBestPetition)
-	 	//m.mount(elem2, VueBestPetition)	
+	 	m.mount(elem2, signInVue)	
 	 	
 	 
   		
@@ -469,44 +698,45 @@
 	   		 '/votebyuser': VuelistPetitionVotedByUser,
 	   		 '/petitionbyname/': VuePetition,
 	   		 '/detailpetition/:key': VueDetailPetition,
+	   		 '/addPetition/': VueFormAddPetition,
+	   		 '/mypetition/': VuemyPetition,
 		})
 		
 	 	
 	 	
-	 	
+	 	function AddOnCurrent(result){
+	 		
+	 		Petition.current.votants = [];
+	 		if (result){
+        		Petition.current.id = result.key.id,
+        		Petition.current.key = result.properties.Key,
+	        	Petition.current.name = result.properties.Name,
+	        	Petition.current.body = result.properties.Body,
+	        	Petition.current.createur = result.properties.createur,
+	        	Petition.current.date = result.properties.Date,
+	        	Petition.current.nbvotants = result.properties.nbvotants;
+        		console.log("votant dans add on current: "+ result.properties.votants)
+	        	if (result.properties.votants !=  undefined){
+	        		Petition.current.votants = result.properties.votants
+	        	}else{
+	        		Petition.current.votants.clear;
+	        	}
+        	}else{
+        		Petition.current.clear;
+        	}
+	 	}
   
-  		var User = {
-  				userInformation: {
-  						"ID" : "",
-  						"nom" : "",
-  						"mail" : ""
-  				}
-  		}
   		
-  		
-  		
-  		
-  		function connexion(googleUser){
-  				User.userInformation.ID = googleUser.getBasicProfile().getId()
-  				User.userInformation.nom = googleUser.getBasicProfile().getName()
-  				User.userInformation.mail = googleUser.getBasicProfile().getEmail()
-  				console.log(User)
-  		}
-  		
-  		function onSuccess(googleUser) {
-  	      console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
-  	    }
-  	    function onFailure(error) {
-  	      console.log(error); 
-  	    }
-  	    
   	    
   	    
   	    
   
 </script>
 </body>
+<!--  
 <script src="https://apis.google.com/js/platform.js?onload=renderButton"
 	async defer></script>
+-->	
+	<script src="https://apis.google.com/js/platform.js" async defer></script>
 
 </html>

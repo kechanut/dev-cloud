@@ -1,4 +1,7 @@
 import java.io.IOException;
+import java.sql.Time;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +28,7 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.cloud.Timestamp;
 
 
 
@@ -43,20 +47,24 @@ public class HelloAppEngine extends HttpServlet {
 	   	 DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
 	   	 // Create Petition
-	   	 for (int i = 0; i < 500; i++) {	
-	   		 Entity e = new Entity("Petition"); // à améliorer
+	   	 
+	   	 for (int i = 10; i < 20; i++) {	
+	   		 Date d = new Date();
+	   		 Entity e = new Entity("Petition", new Date().getTime() + "petition"+i); // à améliorer
 	   		 int owner=r.nextInt(1000);
-	   		 e.setProperty("Key", new Date().getTime() + "Petition" + i);
+	   		 e.setProperty("Key", d.getTime() + "Petition" + i);
 	   		 e.setProperty("Name", "Petition"+i);
 	   		 e.setProperty("Owner", "U" + owner);
 	   		 e.setProperty("Date", new Date()); //date aléatoire (import java util)
 	   		 e.setProperty("Body","test message  "+ i);
+	   		 e.setProperty("jour", new SimpleDateFormat("dd/MM/yyyy").format(d));
+			 e.setProperty("heure", new SimpleDateFormat("HH:mm").format(d));
 	   		 
 	   		 // Create random votants
 	   		 HashSet<String> fset = new HashSet<String>();
-	   		 for (int j=0; j<200; j++){
-	   			 fset.add("U" + r.nextInt(1000));
-	   		 }
+	   		// for (int j=0; j<200; j++){
+	   			 fset.add("kevchanut@gmail.com" );
+	   		 //}
 	   		 e.setProperty("votants", fset);
 	   		 e.setProperty("nbvotants", fset.size());
 	   		 
@@ -70,6 +78,28 @@ public class HelloAppEngine extends HttpServlet {
 	   		 datastore.put(e);
 	   		 response.getWriter().print("<li> created post:" + e.getKey() + "<br>");
 	   	 }
+	   	 
+	   	 /*
+	   	Date date = new Date();
+	   	Entity e = new Entity("Petition");
+	   	e.setProperty("jour", new SimpleDateFormat("dd/MM/yyyy").format(date));
+	   	e.setProperty("heure", new SimpleDateFormat("HH:mm").format(date));
+		datastore.put(e);
+		response.getWriter().print("<li> created post:" + e + "<br>");
+		*/
+	   	
+	   	 //Supprime toutes les entités du datastore
+	   	/*
+	   	 Query q = new Query("Petition");
+		
+		PreparedQuery pq = datastore.prepare(q);
+		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(10000));
+		
+		for (Entity entity : result) {
+			datastore.delete(entity.getKey());
+		}
+		*/
+		
   }
   
   
