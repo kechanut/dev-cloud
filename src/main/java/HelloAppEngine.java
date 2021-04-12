@@ -48,7 +48,8 @@ public class HelloAppEngine extends HttpServlet {
 
 	   	 // Create Petition
 	   	 
-	   	 for (int i = 10; i < 20; i++) {	
+	   	 
+	   	 for (int i = 100; i < 110; i++) {	
 	   		 Date d = new Date();
 	   		 Entity e = new Entity("Petition", new Date().getTime() + "petition"+i); // à améliorer
 	   		 int owner=r.nextInt(1000);
@@ -63,7 +64,7 @@ public class HelloAppEngine extends HttpServlet {
 	   		 // Create random votants
 	   		 HashSet<String> fset = new HashSet<String>();
 	   		// for (int j=0; j<200; j++){
-	   			 fset.add("kevchanut@gmail.com" );
+	   			 fset.add("test" );
 	   		 //}
 	   		 e.setProperty("votants", fset);
 	   		 e.setProperty("nbvotants", fset.size());
@@ -78,6 +79,7 @@ public class HelloAppEngine extends HttpServlet {
 	   		 datastore.put(e);
 	   		 response.getWriter().print("<li> created post:" + e.getKey() + "<br>");
 	   	 }
+	   	 
 	   	 
 	   	 /*
 	   	Date date = new Date();
@@ -97,6 +99,7 @@ public class HelloAppEngine extends HttpServlet {
 		
 		for (Entity entity : result) {
 			datastore.delete(entity.getKey());
+			System.out.println("supresssion de "+ entity.getKey());
 		}
 		*/
 		

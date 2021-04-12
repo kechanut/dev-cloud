@@ -80,8 +80,6 @@ public class Petition {
 
 	*/
 	
-	
-	
 	@ApiMethod(name = "addpetition", httpMethod = HttpMethod.POST)
 	public Entity addpetition(@Named("name") String name,@Named("desc") String desc, @Named("mail") String mailCreateur) {
 		//Entity e = new Entity("Petition", Long.MAX_VALUE - (new Date().getTime()+":"+ mailCreateur)));
@@ -100,7 +98,6 @@ public class Petition {
 
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		datastore.put(e);
-		
 		return e;
 	}
 	
@@ -113,7 +110,7 @@ public class Petition {
 		
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		PreparedQuery pq = datastore.prepare(q);
-		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(10));
+		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(100));
 		long t2=System.currentTimeMillis();
 		System.out.println("query all pétition:"+(t2-t1));
 		return result;
@@ -213,6 +210,7 @@ public class Petition {
 		return entity;
 	}
 	
+	
 	@ApiMethod(name = "votePetition", httpMethod = HttpMethod.POST)
 	public Entity votePetition(@Named("id") String id, @Named("mail") String mail) {
 		System.out.println("id : "+ id);
@@ -231,21 +229,25 @@ public class Petition {
 		
 		if (entity == null) {
 			
+			
 			Query query = new Query("Petition").setFilter(new FilterPredicate("Key", FilterOperator.EQUAL, id));
 			PreparedQuery prq = datastore.prepare(query);
 			Entity entitymodif = prq.asSingleEntity();
 			
 			long nbVote = (long)entitymodif.getProperty("nbvotants");
 			entitymodif.setProperty("nbvotants", nbVote + 1);
-			
-			ArrayList<String> listvotants = (ArrayList<String>)entitymodif.getProperty("votants");
+			System.out.println("entity a modifier: "+ entitymodif);
+			ArrayList<String> listvotants = new ArrayList();
+			if(entitymodif.getProperty("votants") != null) {
+				listvotants = (ArrayList<String>)entitymodif.getProperty("votants");
+			}
 			listvotants.add(mail);
 			System.out.println("list votants : "+ listvotants);
 			entitymodif.setProperty("votants", listvotants);
 			datastore.put(entitymodif);
 		}
 		return entity;
+		
 	}
 
-	
 }
