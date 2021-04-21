@@ -103,8 +103,44 @@
 				userInformation: {
 						"ID" : "",
 						"nom" : "",
-						"mail" : ""
+						"mail" : "",
+						"isOwner": false,
+						"isVotant": false
 				}
+				
+				
+		}
+		
+		function checkIsOwnerOrVotant(petition) {
+			console.log(petition.current.createur)
+			console.log("user mail dans check "+ User.userInformation.mail)
+			if(petition.current.createur == User.userInformation.mail){
+				User.userInformation.isOwner = true;
+				User.userInformation.isVotant = false
+				console.log("dans if sa ")
+			}else{
+				User.userInformation.isOwner = false
+				
+				console.log(petition.current.votants)
+				petition.current.votants.map(function(item){
+					console.log(item)
+					if(item == User.userInformation.mail){
+						User.userInformation.isVotant = true
+						
+						console.log("Owner dans fonction : " +User.userInformation.isOwner)
+	 					console.log("Votants  dans fonction : "+ User.userInformation.isVotant)
+						
+						return;
+					}else{
+						if(User.userInformation.isVotant){
+							User.userInformation.isVotant = false
+						}
+					}
+				})
+			}
+			
+			console.log("Owner dans fonction : " +User.userInformation.isOwner)
+			console.log("Votants dans fonction : "+ User.userInformation.isVotant)
 		}
 		
 		
@@ -120,8 +156,10 @@
 		
 		function isSignIn(){
 			if (User.userInformation.ID == ""){
+				console.log("user incoonu")
 				return false;
 			}else{
+				console.log("user connected")
 				return true;
 			}
 		}
@@ -133,7 +171,8 @@
 
 	
 	 	var Petition = {
-	 			
+	 			nextToken: "",
+	 			nextTokenBestPetition: "",
 	 			current :{
 	 				"id":"",
 	 				"key":"",
@@ -154,11 +193,15 @@
 	  	    			m.route.set('/')
 	  	    			return;
 	  	    		}
+	  	    		
 	  	    		var mail =  encodeURIComponent(User.userInformation.mail);
 	  	    		var name = document.getElementById("name").value;
 	  	    		var desc = document.getElementById("description").value;
-	  	    		console.log("name: " +name)
-	  	    		console.log("desc: " +desc)
+	  	    		
+	  	    		if (name  == "" || desc == ""){
+	  	    			alert('Vous devez remplir tous les champs')
+	  	    			return;
+	  	    		}
 			        return m.request({
 			            method: "POST",
 			            url: "_ah/api/myApi/v1/addpetition/"+name+"/"+desc+"/"+mail,
@@ -169,15 +212,24 @@
 			        	m.redraw(true) 
 			        })
 	  	    	},
+	  	    	
+	  	    	
 	  	    	listAllPetition: [],
 			 	allPetition : function(){
 			 		console.log("dans all petition");
 			        return m.request({
 			            method: "GET",
-			            url: "_ah/api/myApi/v1/allPetition",
+			            url: "_ah/api/myApi/v1/allPetition?next="+Petition.nextToken,
 			        })
 			        .then(function(result) {
-			        	Petition.listAllPetition = result.items
+		        	 	if ('nextPageToken' in result) {
+				        	Petition.nextToken= result.nextPageToken
+			            } else {
+			            	Petition.nextToken=""
+			            }
+		        	 	result.items.map(function(item){Petition.listAllPetition.push(item)})
+			        	//Petition.listAllPetition += result.items
+			        	console.log(result)
 			        	m.redraw(true)
 	     			})
 			 	},
@@ -194,8 +246,6 @@
 				        .then(function(result) {
 				        	if (result != null){
 				        		Petition.listPetitionVotedByUser = result.items
-				        	}else{
-				        		Petition.listPetitionVotedByUser.clear()
 				        	}
 				        	console.log("result list petition voted by user"+ result)
 				        	
@@ -204,6 +254,8 @@
 			 	    }
 			 		
 			 	},
+			 	
+			 	
 			 	listPetitionByName: [],
 			 	petitionByName : function(name){
 			 		return m.request({
@@ -216,21 +268,30 @@
 			        	m.redraw(true)
 			        	console.log("list petition by name:"+Petition.listPetitionByName)
 	     			})
-			 	},	
+			 	},
+			 	
+			 	
 			 	listBestPetition: [],
 			 	BestPetition : function(page){
 			 		console.log('Bestpetition')
 			 		return m.request({
 			            method: "GET",
-			            url: "_ah/api/myApi/v1/BestPetition/",
+			            url: "_ah/api/myApi/v1/BestPetition/?next="+Petition.nextTokenBestPetition,
 			            
 			        })
 			        .then(function(result) {
-			        	console.log("result best petition"+result.items)
-			        	Petition.listBestPetition = result.items
+			        	
+			        	if ('nextPageToken' in result) {
+				        	Petition.nextTokenBestPetition= result.nextPageToken
+			            } else {
+			            	Petition.nextTokenBestPetition=""
+			            }
+			        	console.log(result)
+			        	result.items.map(function(item){Petition.listBestPetition.push(item)})
 			        	m.redraw(true)
 	     			})
 			 	},	
+			 	
 			 	
 			 	detailPetition : function(key){
 			 		console.log("dans detail petition")
@@ -275,7 +336,6 @@
 			        })
 			        .then(function(result) {
 			        	Petition.listmypetitioncreate = result.items
-			        	
 	     			})
 			 	}	
 	  	    }
@@ -315,41 +375,62 @@
 		 					 }
 		 				 })
 		 			}
+		 			
+		 			
 		 	}
 	 	
 	 	
 	 	
 	 	
-//========================= VUE ======================>>	 	
+//========================= VUE ======================>>	
+
+			var buttonAddPetition = {
+						
+				view: function(){
+					return 	m('div',{class:'button_addPetition'}, [
+				   		m('a', {'class':'button ',
+							
+							'href':'#!/addPetition/'
+							}, 
+							'Ajouter une petition'
+						),
+				 	])
+				}
+			}
+		
+		 	
+		 	var addPetitionVue = {
+		 			
+	 			view: function() {
+				   	return 	m(isSignIn() ? buttonAddPetition : "")
+				} 
+		 		
+		 	}
 	 		
 			var VueAllPetition = {
 	 			oninit : function(){
 	 				Petition.allPetition()
 	 			},
+	 			
 				view: function() {
-					
 				   	return m('div', [
+				   		m(addPetitionVue),
 						m('div',{class:'subtitle'},"Liste petition de la plus récente à la plus ancienne"),
-						m('table', {class:'table is-striped'},[
-					 		m('tr', [
-									m('th', {width:"20px"}, "Name"),
-									m('th', {width:"20px"}, "Body"),
-									m('th', {width:"50px"}, "Date"),
-									
-						    ]),
-						    
-						    Petition.listAllPetition.map(function(item) {
-								return m("tr", [
-									m('td', m('label', item.properties.Name)),
-									m('td', m('label', item.properties.Body)),
-									m('td', m('label', item.properties.Date)),
-									m('a', {'class':'nav-link','href':'#!/detailpetition/'+item.properties.Key}, 
-											'Voir'
-									)
-								 	
-								])
-						    })
-						]),
+						
+						m('div', {class:'row'},
+							    Petition.listAllPetition.map(function(item) {
+									return m(boxPetition, item)
+						    	})
+						),
+						
+						m('a', {'class':'button ',
+							onclick   : function(){
+					              Petition.allPetition() 
+							},
+							'href':'#!/'
+							}, 
+							'voir plus'
+						),
 						
 					 ])
 				  } 
@@ -374,25 +455,13 @@
 									    'Rechercher'
 									  )
 							),
-							m('table', {class:'table is-striped'},[
-						 		m('tr', [
-										m('th', {width:"20px"}, "Name"),
-										m('th', {width:"20px"}, "Body"),
-										m('th', {width:"50px"}, "Date"),
-										
-							    ]),
-							    
+							
+							m('div', {class:'row'},
 							    Petition.listPetitionVotedByUser.map(function(item) {
-									return m("tr", [
-										m('td', m('label', item.properties.Name)),
-										m('td', m('label', item.properties.Body)),
-										m('td', m('label', item.properties.Date)),
-										m('a', {'class':'nav-link','href':'#!/detailpetition/'+item.properties.Key}, 
-												'Voir'
-										)
-									])
-							    })
-							]),
+									return m(boxPetition, item)
+						    	})
+							),
+							
 							
 						 ])
 					  } 
@@ -403,6 +472,7 @@
 					view: function() {
 						
 					   	return m('div', [
+					   		
 							m('div',{class:'subtitle'},"Recherche par nom"),
 							
 							m('div',
@@ -418,26 +488,13 @@
 									    'Rechercher'
 									  )
 							),
-							m('table', {class:'table is-striped'},[
-						 		m('tr', [
-										m('th', {width:"20px"}, "Name"),
-										m('th', {width:"20px"}, "Body"),
-										m('th', {width:"50px"}, "Date"),
-										
-							    ]),
-							    
-							   Petition.listPetitionByName.map(function(item) {
-									return m("tr", [
-										m('td', m('label', item.properties.Name)),
-										m('td', m('label', item.properties.Body)),
-										m('td', m('label', item.properties.Date)),
-										m('a', {'class':'nav-link','href':'#!/detailpetition/'+item.properties.Key}, 
-												'Voir'
-										)
-									 	
-									])
-							    })
-							]),
+					
+							m('div', {class:'row'},
+								    
+								    Petition.listPetitionByName.map(function(item) {
+										return m(boxPetition, item)
+								    })
+							),
 							m('button',{
 								class: 'button is-link',
 								onclick: function(e) {}
@@ -450,86 +507,83 @@
 	 	
 	 	
 		 	var VueBestPetition = {
-	 				controller : function(){
-		 			    this.index  = 0 
-	 			  	},
-	 				
 		 			oninit: function(vnode){
-		 				console.log(vnode)
 		 				Petition.BestPetition(vnode.attrs.index)
-		 				
 		 			},
-					view: function(ctrl) {
+					view: function() {
 						
 					   	return 	m('div', [
 							m('div',{class:'subtitle'},"Liste des meilleures Petitions"),
-							m('table', {class:'table is-striped'},[
-						 		m('tr', [
-						 				m('th', {width:"20px"}, "key"),
-										m('th', {width:"20px"}, "Name"),
-										m('th', {width:"20px"}, "Body"),
-										m('th', {width:"50px"}, "Date"),
-										m('th', {width:"50px"}, "Nb Vote"),
-										
-							    ]),
+							m('div', {class:'row'},
 							    
 							    Petition.listBestPetition.map(function(item) {
-									return m("tr", [
-										m('td', m('label', item.properties.Key)),
-										m('td', m('label', item.properties.Name)),
-										m('td', m('label', item.properties.Body)),
-										m('td', m('label', item.properties.Date)),
-										m('td', m('label', item.properties.nbvotants)),
-										m('div', {'class':'button'}, 
-										m('a', {'class':'nav-link','href':'#!/detailpetition/'+item.properties.Key}, 
-											'Voir'
-										)),
-									])
+									return m(boxPetition, item)
 							    })
-							]),
+							),
+							
 							m('a', {'class':'button ',
-								onclick   : function(){
-						              ctrl.attrs.index++
-						              
-								},
-								'href':'#!/BestPetition/'+ctrl.attrs.index
-								}, 
+										onclick   : function(){
+								              Petition.BestPetition() 
+										}
+								   }, 
 								'voir plus'
 							),
 							
 						 ])
 					  } 
 			}
+			
+			var buttonVote = {
+					
+					view: function(){
+						return m('a', {'class':'button ',
+							onclick   : function(){
+								 //Verification.verif(Petition.current.key, User.userInformation.mail);
+								Petition.votePetition(Petition.current.key, User.userInformation.mail);
+					              
+							},
+							
+						}, 
+							'Voter pour cette petition'
+						)
+					}
+			}
+			var messagealreadyVote = {
+					
+					view: function(){
+						return m('div', {'class':'a '
+								
+							
+							}, 
+							'Vous avez deja voté pour cette petition'
+						)
+					}
+			}
+			
+			var messageOwner = {
+					
+					view: function(){
+						return m('div', {'class':'a '
+								
+							
+							}, 
+							'Vous etes le créateur de cette petition'
+						)
+					}
+			}
 	 	
 		 	var VueDetailPetition = {
 					
 	 				oninit: function(vnode){ 
-	 					Petition.current.clear
-	 					console.log("in detail petition vue")
-	 					console.log("vnode : "+vnode)
-	 					console.log("vnode key : "+vnode.attrs.key)
-						Petition.detailPetition(vnode.attrs.key);
-	 					console.log("petition current : "+Petition.current.key)
-	 					
-	 					
+						Petition.detailPetition(vnode.attrs.key).then(result => checkIsOwnerOrVotant(Petition));
 	 				},
+	 				
 					view: function() {
 					   	return 	m('div', [
 							m('div',{class:'subtitle'},"vue detail d'une petition"),
 						
 							
-							
-							m('a', {'class':'button ',
-								onclick   : function(){
-									 //Verification.verif(Petition.current.key, User.userInformation.mail);
-									Petition.votePetition(Petition.current.key, User.userInformation.mail);
-						              
-								},
-								
-								}, 
-								'Voter pour cette petition'
-							),
-							
+							m(User.userInformation.isVotant ? messagealreadyVote : User.userInformation.isOwner ? messageOwner  : buttonVote),
 							
 							m('table', {class:'table is-striped'},[
 						 		m('tr', [
@@ -562,22 +616,9 @@
 						 ])
 					  } 
 			}
-	 	
-	 	
-	 	var signInVue = {
-	 			
-	 			view: function() {
-				   	return 	m('div', [
-				   		m('a', {'class':'button ',
-							
-							'href':'#!/addPetition/'
-							}, 
-							'Ajouter une petition'
-						),
-					 ])
-				  } 
-	 		
-	 	}
+			
+
+	
 	 	
 		var VueFormAddPetition = {
 	 			
@@ -615,13 +656,69 @@
 	 		
 	 	}
 			
+			
+		var listPetitionCreate = {
+				view : function(){
+					return  m('div', {'class':'row'}, 
+						Petition.listmypetitioncreate.map(function(item) {
+							return  m(boxPetition, item)
+					    })
+					)
+				}
+			}
+			
+		var listPetitionVote = {
+				view : function(){
+					return  m('div', {'class':'row'}, 
+						Petition.listPetitionVotedByUser.map(function(item) {
+							return  m(boxPetition, item)
+					    })
+					)
+				}
+			}
+			
+		var boxPetition = {
+			view: function(item){
+				return m('div', {'class':'col-md-4'}, 
+    		    	   		m('div', {'class':'card  mb-3','style':{'max-width':'18rem'}},
+				    		      [
+					    		        m('div', {'class':'card-header bg-transparent'}, 
+					    		        		item.attrs.properties.Name
+					    		        ),
+					    		        m('div', {'class':'card-body'},
+					    		          [
+					    		            m('h5', {'class':'title_petition'}, item.attrs.properties.Name),
+					    		            m('p', {'class':'body_petition'}, item.attrs.properties.Body)
+					    		          ]
+					    		        ),
+					    		        m('div', {'class':'card-footer bg-transparent '}, 
+					    		        		item.attrs.properties.jour+" a "+item.attrs.properties.heure
+					    		        ),
+					    		        m('a', {'class':'nav-link','href':'#!/detailpetition/'+item.attrs.properties.Key}, 
+												'Voir'
+										)
+		    		      		  ]	
+	    		    		  )
+			    		 )
+					}		
+		}
+			
+		var messageAucunePetition = {
+					view: function(){
+						return  m('div', {'class':'row'}, [
+							m('p', {'class':'aucunepetition'},"Aucune pétition à afficher")
+						])
+					}
+			}	
+			
+			
 		var VuemyPetition = {
 	 			oninit : function(){
+	 				
 	 				Petition.listmypetitioncreate = []
 	 				Petition.listPetitionVotedByUser = []
+	 				
 	 				if (isSignIn() == true){
-	 					console.log(User.userInformation.mail)
-		 				console.log("USer mail : "+encodeURIComponent(User.userInformation.mail))
 		 				Petition.petitionVotedByUser(User.userInformation.mail); 
 		 				Petition.myPetition(User.userInformation.mail);
 	 				}else{
@@ -634,63 +731,14 @@
 					
 				   	return m('div', [
 						m('div',{class:'subtitle'},"Liste mes petitions créées"),
-						    m('div', {'class':'row'}, 
-						    		
-						    		
-						    		 Petition.listmypetitioncreate.map(function(item) {
-									    	console.log(item)
-											return  m('div', {'class':'col-md-4'}, 
-									    		    	m('div', {'class':'card  mb-3','style':{'max-width':'18rem'}},
-											    		      [
-											    		        m('div', {'class':'card-header bg-transparent'}, 
-											    		        		item.properties.Name
-											    		        ),
-											    		        m('div', {'class':'card-body'},
-											    		          [
-											    		            m('h5', {'class':'title_petition'}, item.properties.Name),
-											    		            m('p', {'class':'body_petition'}, item.properties.Body)
-											    		          ]
-											    		        ),
-											    		        m('div', {'class':'card-footer bg-transparent '}, 
-											    		        		item.properties.jour+" a "+item.properties.heure
-											    		        ),
-											    		        m('a', {'class':'nav-link','href':'#!/detailpetition/'+item.properties.Key}, 
-																		'Voir'
-																)
-										    		      	]
-									    		    		)
-										    		  )
-											
-									    })
-						    		 
-				    		),
-						
+						m(Petition.listmypetitioncreate.length == 0 ? messageAucunePetition : listPetitionCreate),
 						
 						m('div',{class:'subtitle'},"Liste mes petitions votées"),
-						m('table', {class:'table is-striped'},[
-					 		m('tr', [
-									m('th', {width:"20px"}, "Name"),
-									m('th', {width:"20px"}, "Body"),
-									m('th', {width:"50px"}, "Date"),
-									
-						    ]),
-						    
-						    Petition.listPetitionVotedByUser.map(function(item) {
-						    	console.log(item)
-								return m("tr", [
-									m('td', m('label', item.properties.Name)),
-									m('td', m('label', item.properties.Body)),
-									m('td', m('label', item.properties.Date)),
-									m('a', {'class':'nav-link','href':'#!/detailpetition/'+item.properties.Key}, 
-											'Voir'
-									)
-								 	
-								])
-						    })
-						]),
+						m(Petition.listPetitionVotedByUser.length == 0 ? messageAucunePetition : listPetitionVote),
 					 ])
 				  } 
 			}
+			
 			
 			
 			
@@ -752,10 +800,6 @@
 	 	//m.mount(elem, VueBestPetition)	
 	 	//m.mount(elem, VueBestPetition)
 	 	m.mount(elem2, navVue)	
-	 	m.mount(elem2, signInVue)	
-	 	
-	 
-  		
 	 	m.route(elem, "/", {
 
 	   		 '/': VueAllPetition,
@@ -795,6 +839,8 @@
 	        	Petition.current.date="" 
 	        	Petition.current.nbvotants=""  
         	}
+	 		
+	 		console.log("fin add on current")
 	 	}
   
 </script>

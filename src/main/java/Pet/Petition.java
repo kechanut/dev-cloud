@@ -14,13 +14,17 @@ import com.google.api.server.spi.config.Named;
 import com.google.api.server.spi.config.Nullable;
 //import com.google.api.server.spi.config.Named;
 import com.google.api.server.spi.config.ApiMethod.HttpMethod;
+import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Projection;
+import com.google.appengine.api.datastore.PropertyProjection;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.QueryResultList;
 import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
@@ -28,6 +32,7 @@ import com.google.appengine.api.datastore.Query.SortDirection;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+
 /*
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.PreparedQuery;
@@ -86,8 +91,8 @@ public class Petition {
 		System.out.println("name :"+name );
 		System.out.println("desc :"+desc );
 		Date d = new Date();
-		Entity e = new Entity("Petition");
-		e.setProperty("Key", d.getTime() + name);
+		Entity e = new Entity("Petition", Long.MAX_VALUE - new Date().getTime() + mailCreateur);
+		e.setProperty("Key", Long.MAX_VALUE - new Date().getTime() + mailCreateur);
 		e.setProperty("Name", name);
 		e.setProperty("Body", desc);
 		e.setProperty("nbvotants", 0);
@@ -101,27 +106,60 @@ public class Petition {
 		return e;
 	}
 	
+
 	@ApiMethod(name = "allPetition", httpMethod = HttpMethod.GET)
-	public List<Entity> allPetition() {
+	public CollectionResponse<Entity> allPetition( @Nullable @Named("next") String cursorString) {
 		long t1=System.currentTimeMillis();
 		System.out.println("test allpetition");
 		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
-		Query q = new Query("Petition").addSort("Key", SortDirection.DESCENDING);
+		
+		
+		//query avec projection sur les éléments utiles
+		Query q = new Query("Petition");
+				/*.addProjection(new PropertyProjection("Key", String.class))
+				.addProjection(new PropertyProjection("Name", String.class))
+				.addProjection(new PropertyProjection("Body", String.class))
+				.addProjection(new PropertyProjection("nbvotants", Long.class))
+				.addProjection(new PropertyProjection("createur", String.class))
+				.addProjection(new PropertyProjection("jour", String.class))
+				.addProjection(new PropertyProjection("heure", String.class))
+				.addSort("Key", SortDirection.DESCENDING);*/
 		
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		PreparedQuery pq = datastore.prepare(q);
-		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(100));
+		FetchOptions fetchOptions = FetchOptions.Builder.withLimit(10);
+		
+		//Cursor pour pagination
+		if (cursorString != null) {
+			fetchOptions.startCursor(Cursor.fromWebSafeString(cursorString));
+	    }
+		//List<Entity> result = pq.asQueryList(FetchOptions.Builder.withLimit(100));
+		 QueryResultList<Entity> results = pq.asQueryResultList(fetchOptions);
+		cursorString = results.getCursor().toWebSafeString();
+		
 		long t2=System.currentTimeMillis();
 		System.out.println("query all pétition:"+(t2-t1));
-		return result;
+		System.out.println("c modifié encire une fois");
+		//return results;
+		return CollectionResponse.<Entity>builder().setItems(results).setNextPageToken(cursorString).build();
 	}
+	
+	
 	
 	@ApiMethod(name = "petitionVotedByUser", httpMethod = HttpMethod.GET)
 	public List<Entity> petitionVotedByUser(@Named("name") String name) {
 		
 		System.out.println("test"+name);
 		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
-		Query q = new Query("Petition").setFilter(new FilterPredicate("votants", FilterOperator.EQUAL, name));
+		Query q = new Query("Petition")
+				/*.addProjection(new PropertyProjection("Key", String.class))
+				.addProjection(new PropertyProjection("Name", String.class))
+				.addProjection(new PropertyProjection("Body", String.class))
+				.addProjection(new PropertyProjection("nbvotants", Long.class))
+				.addProjection(new PropertyProjection("createur", String.class))
+				.addProjection(new PropertyProjection("jour", String.class))
+				.addProjection(new PropertyProjection("heure", String.class))*/
+				.setFilter(new FilterPredicate("votants", FilterOperator.EQUAL, name));
 		
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		PreparedQuery pq = datastore.prepare(q);
@@ -134,7 +172,16 @@ public class Petition {
 	public Entity petitionByName(@Named("name") String name) {
 		
 		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
-		Query q = new Query("Petition").setFilter(new FilterPredicate("Name", FilterOperator.EQUAL, name));
+		Query q = new Query("Petition")
+				
+				/*.addProjection(new PropertyProjection("Key", String.class))
+				.addProjection(new PropertyProjection("Name", String.class))
+				.addProjection(new PropertyProjection("Body", String.class))
+				.addProjection(new PropertyProjection("nbvotants", Long.class))
+				.addProjection(new PropertyProjection("createur", String.class))
+				.addProjection(new PropertyProjection("jour", String.class))
+				.addProjection(new PropertyProjection("heure", String.class))*/
+				.setFilter(new FilterPredicate("Name", FilterOperator.EQUAL, name));
 		
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		PreparedQuery pq = datastore.prepare(q);
@@ -148,7 +195,16 @@ public class Petition {
 		
 		System.out.println("test"+name);
 		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
-		Query q = new Query("Petition").setFilter(new FilterPredicate("createur", FilterOperator.EQUAL, name)).addSort("Key", SortDirection.DESCENDING);
+		Query q = new Query("Petition")
+				/*.addProjection(new PropertyProjection("Key", String.class))
+				.addProjection(new PropertyProjection("Name", String.class))
+				//.addProjection(new PropertyProjection("Body", String.class))
+				.addProjection(new PropertyProjection("nbvotants", Long.class))
+				.addProjection(new PropertyProjection("createur", String.class))
+				//.addProjection(new PropertyProjection("jour", String.class))
+				//.addProjection(new PropertyProjection("heure", String.class))*/
+				
+				.setFilter(new FilterPredicate("createur", FilterOperator.EQUAL, name)).addSort("Key", SortDirection.DESCENDING);
 		
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		PreparedQuery pq = datastore.prepare(q);
@@ -158,25 +214,36 @@ public class Petition {
 	}
 
 	@ApiMethod(name = "BestPetition", httpMethod = HttpMethod.GET)
-	public List<Entity> BestPetition(@Nullable @Named("index") String  cursorString) {
+	public CollectionResponse<Entity> BestPetition(@Nullable @Named("next") String cursorString) {
 		System.out.println("BestPetition");
 		System.out.println("sursor" + cursorString);
 		long t1=System.currentTimeMillis();
 		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
-		Query q = new Query("Petition").addSort("nbvotants", SortDirection.DESCENDING);;
+		Query q = new Query("Petition")
+				/*.addProjection(new PropertyProjection("Key", String.class))
+				.addProjection(new PropertyProjection("Name", String.class))
+				.addProjection(new PropertyProjection("Body", String.class))
+				.addProjection(new PropertyProjection("nbvotants", Long.class))
+				.addProjection(new PropertyProjection("createur", String.class))
+				.addProjection(new PropertyProjection("jour", String.class))
+				.addProjection(new PropertyProjection("heure", String.class))*/
+				.addSort("nbvotants", SortDirection.DESCENDING);
 		
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		PreparedQuery pq = datastore.prepare(q);
-		
 		FetchOptions fetchOptions = FetchOptions.Builder.withLimit(10);
-	    
-	    if (cursorString != null) {
-	    	fetchOptions.startCursor(Cursor.fromWebSafeString(cursorString));
-		}
-		List<Entity> result = pq.asList(fetchOptions);
+		if (cursorString != null) {
+			fetchOptions.startCursor(Cursor.fromWebSafeString(cursorString));
+	    }
+		//List<Entity> result = pq.asQueryList(FetchOptions.Builder.withLimit(100));
+		 QueryResultList<Entity> results = pq.asQueryResultList(fetchOptions);
+		cursorString = results.getCursor().toWebSafeString();
+		
 		long t2=System.currentTimeMillis();
-		System.out.println("query meilleure pétition:"+(t2-t1));
-		return result;
+		System.out.println("query all pétition:"+(t2-t1));
+		System.out.println("c modifié encire une fois");
+		//return results;
+		return CollectionResponse.<Entity>builder().setItems(results).setNextPageToken(cursorString).build();
 	}
 	
 	@ApiMethod(name = "detailPetition", httpMethod = HttpMethod.GET)

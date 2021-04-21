@@ -48,18 +48,17 @@ public class HelloAppEngine extends HttpServlet {
 
 	   	 // Create Petition
 	   	 
-	   	 
-	   	 for (int i = 100; i < 110; i++) {	
+	   	 for (int i = 300; i < 350; i++) {	
 	   		 Date d = new Date();
-	   		 Entity e = new Entity("Petition", new Date().getTime() + "petition"+i); // à améliorer
+	   		 Entity e = new Entity("Petition", Long.MAX_VALUE - new Date().getTime() + "petition"+i); // à améliorer
 	   		 int owner=r.nextInt(1000);
-	   		 e.setProperty("Key", d.getTime() + "Petition" + i);
+	   		 e.setProperty("Key",  Long.MAX_VALUE - new Date().getTime() + "petition"+i);
 	   		 e.setProperty("Name", "Petition"+i);
-	   		 e.setProperty("Owner", "U" + owner);
-	   		 e.setProperty("Date", new Date()); //date aléatoire (import java util)
+	   		 e.setProperty("createur", "U" + owner);
 	   		 e.setProperty("Body","test message  "+ i);
 	   		 e.setProperty("jour", new SimpleDateFormat("dd/MM/yyyy").format(d));
 			 e.setProperty("heure", new SimpleDateFormat("HH:mm").format(d));
+			 
 	   		 
 	   		 // Create random votants
 	   		 HashSet<String> fset = new HashSet<String>();
@@ -67,7 +66,7 @@ public class HelloAppEngine extends HttpServlet {
 	   			 fset.add("test" );
 	   		 //}
 	   		 e.setProperty("votants", fset);
-	   		 e.setProperty("nbvotants", fset.size());
+	   		 e.setProperty("nbvotants", 5);
 	   		 
 	   		 // Create random tags
 	   		 HashSet<String> ftags = new HashSet<String>();
@@ -92,7 +91,7 @@ public class HelloAppEngine extends HttpServlet {
 	   	
 	   	 //Supprime toutes les entités du datastore
 	   	/*
-	   	 Query q = new Query("Petition");
+	   	Query q = new Query("Petition");
 		
 		PreparedQuery pq = datastore.prepare(q);
 		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(10000));
@@ -102,6 +101,8 @@ public class HelloAppEngine extends HttpServlet {
 			System.out.println("supresssion de "+ entity.getKey());
 		}
 		*/
+		
+		
 		
   }
   
