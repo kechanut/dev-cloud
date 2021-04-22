@@ -28,8 +28,8 @@
 	src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <link rel="stylesheet"
-	href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
-
+	href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css"/>
+<link rel="stylesheet" href="./style.css" />
 
 <script defer
 	src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
@@ -91,8 +91,6 @@
 	<nav class="nav" id="nav"></nav>
 	<div class="container" id ="divlogin"></div>
 	<div class="container" id ="result"></div>
-
-
 
 <script>
 		
@@ -179,7 +177,8 @@
 	 				"name":"",
 	 				"createur":"",
 	 				"body":"",
-	 				"date":"",
+	 				"heure":"",
+	 				"jour":"",
 	 				"nbvotants":"",
 	 				"votants":[],
 	  		    	
@@ -264,9 +263,10 @@
 			        })
 			        .then(function(result) {
 			        	console.log(result)
-			        	Petition.listPetitionByName = result
+			        	Petition.listPetitionByName = result.items
+			        	
+			        	console.log(Petition.listPetitionByName)
 			        	m.redraw(true)
-			        	console.log("list petition by name:"+Petition.listPetitionByName)
 	     			})
 			 	},
 			 	
@@ -317,7 +317,11 @@
 			        .then(function(result) {
 			        	console.log(result)
 			        	 if(result == null){
-	 						 window.location.reload()
+			        		console.log(Petition.current.nbvotants)
+	 						++Petition.current.nbvotants;
+	 						Petition.current.votants.unshift(mail);
+	 						console.log(Petition.current.nbvotants)
+	 						return VueDetailPetition;
 	 					 }else{
 	 						 alert("Vous avez deja voté pour cette petition");
 	 					 }
@@ -438,8 +442,12 @@
 	 	
 	 	
 		 	var VuelistPetitionVotedByUser = {
+					oninit:function(){
+						Petition.listPetitionVotedByUser = []
+					},
 					view: function() {
 					   	return m('div', [
+					   		m(addPetitionVue),
 							m('div',{class:'subtitle'},"Liste Petition signé par un utilisateur"),
 							
 							m('div',
@@ -469,10 +477,11 @@
 	 		
 	 
 		 	var VuePetition = {
+					
 					view: function() {
 						
 					   	return m('div', [
-					   		
+					   		m(addPetitionVue),
 							m('div',{class:'subtitle'},"Recherche par nom"),
 							
 							m('div',
@@ -490,10 +499,10 @@
 							),
 					
 							m('div', {class:'row'},
-								    
-								    Petition.listPetitionByName.map(function(item) {
+									Petition.listPetitionByName.map(function(item) {
 										return m(boxPetition, item)
 								    })
+								    
 							),
 							m('button',{
 								class: 'button is-link',
@@ -504,8 +513,7 @@
 						 ])
 					  } 
 			}
-	 	
-	 	
+			
 		 	var VueBestPetition = {
 		 			oninit: function(vnode){
 		 				Petition.BestPetition(vnode.attrs.index)
@@ -513,6 +521,7 @@
 					view: function() {
 						
 					   	return 	m('div', [
+					   		m(addPetitionVue),
 							m('div',{class:'subtitle'},"Liste des meilleures Petitions"),
 							m('div', {class:'row'},
 							    
@@ -551,24 +560,39 @@
 			var messagealreadyVote = {
 					
 					view: function(){
-						return m('div', {'class':'a '
-								
-							
-							}, 
+						return m('div', {'class':'message '}, 
 							'Vous avez deja voté pour cette petition'
 						)
 					}
 			}
+		
 			
 			var messageOwner = {
 					
 					view: function(){
-						return m('div', {'class':'a '
-								
-							
-							}, 
+						return m('div', {'class':'message '}, 
 							'Vous etes le créateur de cette petition'
 						)
+					}
+			}
+			
+			var messageconnexion = {
+					
+					view: function(){
+						return m('div', {'class':'message '}, 
+							'Connectez vous pour voter'
+						)
+					}
+			}
+			
+			var messageAucuneSignature = {
+					
+					view: function(){
+						return m('div', {'class':'row '}, 
+									 m('div', {'class':'message'},
+											 "Aucune signature pour le moment"
+									 )
+							   )
 					}
 			}
 	 	
@@ -580,44 +604,96 @@
 	 				
 					view: function() {
 					   	return 	m('div', [
-							m('div',{class:'subtitle'},"vue detail d'une petition"),
-						
-							
-							m(User.userInformation.isVotant ? messagealreadyVote : User.userInformation.isOwner ? messageOwner  : buttonVote),
-							
-							m('table', {class:'table is-striped'},[
-						 		m('tr', [
-										m('th', {width:"20px"}, "Name"),
-										m('th', {width:"20px"}, "votants"),
-										m('th', {width:"50px"}, "Date"),
-										m('th', {width:"50px"}, "Nb Vote"),
-										
-							    ]),
-							    	
-								 m("tr", [
-									m('td', m('label', Petition.current.name)),
-									//m('td', m('label', item.properties.Body)),
-									//m('td', m('label', item.properties.Date)),
-									//m('td', m('label', item.properties.nbvotants)),
-									
-									Petition.current.votants.map(function(votants) {
-									return m("tr", [
-										m('td', m('label', votants)),
-										
-										])
-									
-						    		}),
-						    		m('td', m('label', Petition.current.date)),
-									m('td', m('label', Petition.current.nbvotants)),
-								 	
-								])
-							   
-							]),
+							  m('div', {class:'row justify-content-center'},
+							    [
+							      m('div', {'class':'title_petition_page'}, 
+							        m('h2', 
+							          'Pétition'
+							        )
+							      )
+							    ]
+							  ),
+							  m('div', {class:'row justify-content-center'},
+							  	[
+							      m('div', {'class':'row justify-content-center title_petition'},
+							        [
+							          m('h3', 
+							        	 Petition.current.name
+							          )
+							        ]
+							      ),
+							      m('p', {'class':'auteur_petition'}, 
+								            'Auteur : '
+						          ),
+						          m('p', {'class':'name_auteur_petition'}, 
+						        		  Petition.current.createur
+						          )
+							    ]
+							  ), 
+							  m('div', {'class':'row details_petition'},
+							    [
+								      m('div', {'class':'col-sm-8'}, 
+								        m('div', {'class':'body_petition card'}, 
+							        		m('div', {'class':'body_petition_title'}, 
+								        		"Description"
+									        ),
+									        m('div', {'class':'body_petition_details'}, 
+								        		Petition.current.body
+									        ),
+							        		
+								        )
+								      ),
+								      
+								      m('div', {'class':'col-sm-4 info_petition'}, 
+							    		  [
+												m('div', {'class':'cree_le_date_petition'}, 
+														"Créée le : "
+												),
+												m('div', {'class':'date_petition'}, 
+														 Petition.current.jour + " à " +Petition.current.heure
+												),
+												m('div', {'class':'info_votants'}, 
+													[
+														m('div', {'class':'nb_votant_petition'}, 
+																Petition.current.nbvotants
+														),
+														m('div', {'class':'signature_votant_petition'}, 
+																Petition.current.nbvotants > 1 ? "Signatures" : "Signature"
+														)
+													]
+												),
+													
+												
+												m('div', {'class':'vote_petition'}, 
+														m(!isSignIn() ? messageconnexion : User.userInformation.isVotant ? messagealreadyVote : User.userInformation.isOwner ? messageOwner  : buttonVote),
+												)
+							    		  ]
+								      	)
+							    ]
+							  ),
+							  m('div', {'class':'row details_votants_petition'},
+							    m('div', {class:'details_votants_petition_title'}, 
+							    	"Signatures"
+							    ),
+								m(Petition.current.nbvotants == 0 ? messageAucuneSignature : listVotantsPetition )
+							  )
 						 ])
 					  } 
 			}
 			
-
+		var listVotantsPetition = {
+					
+			view : function(){
+				console.log(Petition.current.votants)
+				return  m('div', {'class':'row'}, 
+					Petition.current.votants.map(function(item) {
+						return  m('div', {'class':'votants'},
+									Petition.current.votants.indexOf(item) + 1 + " :  " + item
+								)
+				    })
+				)
+			}
+		}
 	
 	 	
 		var VueFormAddPetition = {
@@ -680,21 +756,43 @@
 		var boxPetition = {
 			view: function(item){
 				return m('div', {'class':'col-md-4'}, 
-    		    	   		m('div', {'class':'card  mb-3','style':{'max-width':'18rem'}},
+    		    	   		m('div', {'class':'card  mb-3','style':{'margin':'5px'}},
 				    		      [
 					    		        m('div', {'class':'card-header bg-transparent'}, 
-					    		        		item.attrs.properties.Name
+					    		        	[
+					    		        		 m('div', {'class':'box_petition_title'}, 
+							    		        			"Pétition"
+			    		        				 ),
+			    		        				 m('div', {'class':'box_petition_name'}, 
+			    		        					item.attrs.properties.Name
+			    		        				 )
+					    		        	]
+				    		        		
+					    		        		
 					    		        ),
 					    		        m('div', {'class':'card-body'},
 					    		          [
-					    		            m('h5', {'class':'title_petition'}, item.attrs.properties.Name),
-					    		            m('p', {'class':'body_petition'}, item.attrs.properties.Body)
+					    		            m('p', {'class':'body_petition_box'}, item.attrs.properties.Body)
 					    		          ]
 					    		        ),
 					    		        m('div', {'class':'card-footer bg-transparent '}, 
-					    		        		item.attrs.properties.jour+" a "+item.attrs.properties.heure
+				    		        		m('div', {'class':'auteurs '}, 
+				    		        		
+					    		        		  m('p', {'class':'auteur_petition_box'}, 
+												            'Auteur : '
+										          ),
+										          m('p', {'class':'name_auteur_petition_box'}, 
+										        		  item.attrs.properties.createur
+										          ),
+										     ),
+										     m('div', {'class':'cree_le_date_petition_box'}, 
+												"Créée le : "
+										     ),
+				    		        		 m('div', {'class':'date_petition_box'}, 
+				    		        			item.attrs.properties.jour + " à " +item.attrs.properties.heure
+											 ),
 					    		        ),
-					    		        m('a', {'class':'nav-link','href':'#!/detailpetition/'+item.attrs.properties.Key}, 
+					    		        m('a', {'class':'btn btn-secondary','href':'#!/detailpetition/'+item.attrs.properties.Key}, 
 												'Voir'
 										)
 		    		      		  ]	
@@ -730,6 +828,7 @@
 				view: function() {
 					
 				   	return m('div', [
+				   		m(addPetitionVue),
 						m('div',{class:'subtitle'},"Liste mes petitions créées"),
 						m(Petition.listmypetitioncreate.length == 0 ? messageAucunePetition : listPetitionCreate),
 						
@@ -822,7 +921,8 @@
 	        	Petition.current.name = result.properties.Name,
 	        	Petition.current.body = result.properties.Body,
 	        	Petition.current.createur = result.properties.createur,
-	        	Petition.current.date = result.properties.Date,
+	        	Petition.current.heure = result.properties.heure,
+	        	Petition.current.jour = result.properties.jour,
 	        	Petition.current.nbvotants = result.properties.nbvotants;
         		console.log("votant dans add on current: "+ result.properties.votants)
 	        	if (result.properties.votants !=  undefined){

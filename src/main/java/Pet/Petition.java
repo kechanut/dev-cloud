@@ -148,8 +148,6 @@ public class Petition {
 	
 	@ApiMethod(name = "petitionVotedByUser", httpMethod = HttpMethod.GET)
 	public List<Entity> petitionVotedByUser(@Named("name") String name) {
-		
-		System.out.println("test"+name);
 		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
 		Query q = new Query("Petition")
 				/*.addProjection(new PropertyProjection("Key", String.class))
@@ -169,8 +167,8 @@ public class Petition {
 	}
 	
 	@ApiMethod(name = "petitionByName", httpMethod = HttpMethod.GET)
-	public Entity petitionByName(@Named("name") String name) {
-		
+	public List<Entity>  petitionByName(@Named("name") String name) {
+		System.out.println(name);
 		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
 		Query q = new Query("Petition")
 				
@@ -185,7 +183,7 @@ public class Petition {
 		
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		PreparedQuery pq = datastore.prepare(q);
-		Entity result = pq.asSingleEntity();
+		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(10));
 		System.out.println(result);
 		return result;
 	}
