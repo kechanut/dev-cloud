@@ -132,7 +132,7 @@
 
 .box_petition_name{
 	text-align:left;
-	text-transform: capitalize;
+	text-transform: none;
 	font-weight : bold;
 	width:100%;
 	margin : 0 10px;
@@ -168,10 +168,43 @@
 
 .body_petition_box{
 	padding : 10px;
-	text-transform:capitalize;
+	text-transform: none;
+}
+
+.box_info_votants{
+	text-align : center;
+	margin: 10px 0;
+}
+
+.box_nb_votant_petition{
+	font-size: 25px !important;
+	color: red;
+	font-weight : bold;
+	text-transform: uppercase;
+	margin: 0 5px;
+	
+}
+
+.box_signature_votant_petition{
+	font-size: 15px !important;
+	color: black;
+	text-transform: uppercase;
+	font-weight : bold;
+	margin: 0;
+    align-items: center;
+    display: flex;
+	
 }
 
 
+
+
+.pagination{
+	margin: 50px 0;
+}
+.pagination .btn{
+	width: 50%;
+}
 
 
 

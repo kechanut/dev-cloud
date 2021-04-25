@@ -47,7 +47,7 @@
 
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-	<a class="navbar-brand"  href="/#!/">Site de Petition</a>
+	<a class="navbar-brand"  href="/?#!/">Site de Petition</a>
 	<button class="navbar-toggler" type="button" data-toggle="collapse"
 		data-target="#navbarSupportedContent"
 		aria-controls="navbarSupportedContent" aria-expanded="false"
@@ -60,12 +60,12 @@
 			<li class="nav-item active"><a class="nav-link" href="/">
 				<span class="sr-only">(current)</span></a>
 			</li>
-			<li class="nav-item"><a class="nav-link"  href="/#!/top/">Meilleures petitions</a>
+			<li class="nav-item"><a class="nav-link"  href="/?#!/top/">Meilleures petitions</a>
 			</li>
-			<li class="nav-item"><a class="nav-link"  href="/#!/votebyuser">Petition votées d'un utilisateur</a>
+			<li class="nav-item"><a class="nav-link"  href="/?#!/votebyuser">Petition votées d'un utilisateur</a>
 			</li>
-			<li class="nav-item"><a class="nav-link"  href="/#!/petitionbyname">Petition par nom</a></li>
-			<li class="nav-item"><a class="nav-link"  href="/#!/mypetition">Mes petitions</a></li>
+			<li class="nav-item"><a class="nav-link"  href="/?#!/petitionbyname">Petition par nom</a></li>
+			<li class="nav-item"><a class="nav-link"  href="/?#!/mypetition">Mes petitions</a></li>
 			<div class="nav-item g-signin2"  data-onsuccess="onSignIn">Se connecter</div>
 		</ul>
 	</div>
@@ -110,35 +110,20 @@
 		}
 		
 		function checkIsOwnerOrVotant(petition) {
-			console.log(petition.current.createur)
-			console.log("user mail dans check "+ User.userInformation.mail)
 			if(petition.current.createur == User.userInformation.mail){
 				User.userInformation.isOwner = true;
 				User.userInformation.isVotant = false
-				console.log("dans if sa ")
 			}else{
 				User.userInformation.isOwner = false
-				
-				console.log(petition.current.votants)
-				petition.current.votants.map(function(item){
-					console.log(item)
-					if(item == User.userInformation.mail){
+				User.userInformation.isVotant = false
+				for(var i = 0 ; i < petition.current.votants.length; i++ ){
+					if(petition.current.votants[i] == User.userInformation.mail){
+						
 						User.userInformation.isVotant = true
-						
-						console.log("Owner dans fonction : " +User.userInformation.isOwner)
-	 					console.log("Votants  dans fonction : "+ User.userInformation.isVotant)
-						
-						return;
-					}else{
-						if(User.userInformation.isVotant){
-							User.userInformation.isVotant = false
-						}
+						break;
 					}
-				})
+				}
 			}
-			
-			console.log("Owner dans fonction : " +User.userInformation.isOwner)
-			console.log("Votants dans fonction : "+ User.userInformation.isVotant)
 		}
 		
 		
@@ -154,18 +139,15 @@
 		
 		function isSignIn(){
 			if (User.userInformation.ID == ""){
-				console.log("user incoonu")
 				return false;
 			}else{
-				console.log("user connected")
 				return true;
 			}
 		}
 		
-		console.log(User)
 		function onSuccess(googleUser) {
-	    console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
-	  }
+	    	console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
+	  	}
 
 	
 	 	var Petition = {
@@ -186,17 +168,18 @@
 	 			
 	 			
 	  	    	addPetition : function(){
-	  	    		
+	  	    		console.log("debut de l'ajout")
 	  	    		if(User.userInformation.mail == ""){
 	  	    			alert('Vous devez etre connecté pour creer une petition')
 	  	    			m.route.set('/')
 	  	    			return;
 	  	    		}
 	  	    		
-	  	    		var mail =  encodeURIComponent(User.userInformation.mail);
-	  	    		var name = document.getElementById("name").value;
-	  	    		var desc = document.getElementById("description").value;
+	  	    		var mail = encodeURIComponent(User.userInformation.mail);
+	  	    		var name = encodeURIComponent(document.getElementById("name").value);
+	  	    		var desc = encodeURIComponent(document.getElementById("description").value);
 	  	    		
+	  	    		console.log("mail : "+ mail + "| name  : "+ name + "| desc  : "+ desc)
 	  	    		if (name  == "" || desc == ""){
 	  	    			alert('Vous devez remplir tous les champs')
 	  	    			return;
@@ -207,7 +190,9 @@
 			        })
 			        .then(function(result) {
 			        	console.log("message : ça marche");
-			        	m.route.set('/mypetition/');
+			        	console.log(result)
+			        	return result;
+			        	m.route.set('/mypetition');
 			        	m.redraw(true) 
 			        })
 	  	    	},
@@ -240,7 +225,7 @@
 			 	    if(name != null){
 			 	    	return m.request({
 				            method: "GET",
-				            url: "_ah/api/myApi/v1/petitionVotedByUser/"+name,
+				            url: "_ah/api/myApi/v1/petitionVotedByUser/"+encodeURIComponent(name),
 				        })
 				        .then(function(result) {
 				        	if (result != null){
@@ -257,9 +242,10 @@
 			 	
 			 	listPetitionByName: [],
 			 	petitionByName : function(name){
+			 		console.log(encodeURIComponent(name))
 			 		return m.request({
 			            method: "GET",
-			            url: "_ah/api/myApi/v1/petitionByName/"+name,
+			            url: "_ah/api/myApi/v1/petitionByName/"+encodeURIComponent(name),
 			        })
 			        .then(function(result) {
 			        	console.log(result)
@@ -283,6 +269,11 @@
 			        	
 			        	if ('nextPageToken' in result) {
 				        	Petition.nextTokenBestPetition= result.nextPageToken
+				        	
+				        	if(result.items.length < 10){
+				        		console.log(document.getElementById('pagination_bestPetition'))
+				        		document.getElementById('pagination_bestPetition').style.visibility = 'hidden';
+				        	}
 			            } else {
 			            	Petition.nextTokenBestPetition=""
 			            }
@@ -297,7 +288,7 @@
 			 		console.log("dans detail petition")
 			 		return m.request({
 			            method: "GET",
-			            url: "_ah/api/myApi/v1/detailPetition/"+key,
+			            url: "_ah/api/myApi/v1/detailPetition/"+encodeURIComponent(key),
 			            
 			            
 			        })
@@ -312,16 +303,14 @@
 			 	votePetition : function(id, mail){
 			 		return m.request({
 			            method: "POST",
-			            url: "_ah/api/myApi/v1/votePetition/"+id+"/"+mail,
+			            url: "_ah/api/myApi/v1/votePetition/"+encodeURIComponent(id)+"/"+encodeURIComponent(mail),
 			        })
 			        .then(function(result) {
 			        	console.log(result)
 			        	 if(result == null){
-			        		console.log(Petition.current.nbvotants)
 	 						++Petition.current.nbvotants;
-	 						Petition.current.votants.unshift(mail);
-	 						console.log(Petition.current.nbvotants)
-	 						return VueDetailPetition;
+	 						Petition.current.votants.unshift(mail)
+	 						//m(messagealreadyVote)
 	 					 }else{
 	 						 alert("Vous avez deja voté pour cette petition");
 	 					 }
@@ -334,7 +323,7 @@
 			 		
 			 		return m.request({
 			            method: "GET",
-			            url: "_ah/api/myApi/v1/myPetition/"+User.userInformation.mail,
+			            url: "_ah/api/myApi/v1/myPetition/"+encodeURIComponent(User.userInformation.mail),
 			            
 			            
 			        })
@@ -349,40 +338,23 @@
 	 	
 		 	var Verification = {
 		 			nomExistant : function(name){
+		 				 console.log("debut de verif si nom existant avec le nom egal à " + name + "test modif")
 		 				 return m.request({
 			  		            method: "GET",
-			  		            url: "_ah/api/myApi/v1/petitionByName/"+name,
+			  		            url: "_ah/api/myApi/v1/petitionByName/"+encodeURIComponent(name)
 		  		         })
 		  		         .then(function(result){
-		  		        	 console.log("result" + result)
-		 					 if(result == null){
-		 						 console.log("dans if verif")
+		  		        	 console.log(result)
+		 					 if(result.items.length == 0){
 		 						 Petition.addPetition();
 		 					 }else{
 		 						 alert("Ce nom existe déjà");
 		 					 }
 		 				 })
-		 			},
-		 	
-		 			alreadyVote : function(id, mail){
-		 				console.log("is in petition -> petition : "+ id)
-		 				console.log("is in petition -> user : "+ mail)
-		 				 return m.request({
-			  		            method: "GET",
-			  		            url: "_ah/api/myApi/v1/dejavote/"+id+"/"+mail,
-		  		         })
-		  		         .then(function(result){
-		 					 if(result == null){
-		 						 Petition.votePetition(id, mail);
-		 					 }else{
-		 						 alert("Vous avez deja voté pour cette petition");
-		 					 }
-		 				 })
 		 			}
-		 			
-		 			
 		 	}
 	 	
+		 	
 	 	
 	 	
 	 	
@@ -391,10 +363,10 @@
 			var buttonAddPetition = {
 						
 				view: function(){
-					return 	m('div',{class:'button_addPetition'}, [
+					return 	m('div',{class:'row justify-content-end button_addPetition'}, [
 				   		m('a', {'class':'button ',
 							
-							'href':'#!/addPetition/'
+							'href':'?#!/addPetition/'
 							}, 
 							'Ajouter une petition'
 						),
@@ -422,20 +394,20 @@
 						m('div',{class:'subtitle'},"Liste petition de la plus récente à la plus ancienne"),
 						
 						m('div', {class:'row'},
-							    Petition.listAllPetition.map(function(item) {
-									return m(boxPetition, item)
-						    	})
+						    Petition.listAllPetition.map(function(item) {
+								return m(boxPetition, item)
+					    	})
 						),
-						
-						m('a', {'class':'button ',
-							onclick   : function(){
-					              Petition.allPetition() 
-							},
-							'href':'#!/'
-							}, 
-							'voir plus'
+						m('div',{class: 'row justify-content-center pagination'},
+							m('a', {'class':'btn btn-primary ',
+								onclick : function(){
+						              Petition.allPetition() 
+								},
+								'href':'?#!/'
+								}, 
+								'voir plus'
+							)
 						),
-						
 					 ])
 				  } 
 			}
@@ -477,6 +449,9 @@
 	 		
 	 
 		 	var VuePetition = {
+					oninit: function(){
+						Petition.listPetitionByName = []
+					},
 					
 					view: function() {
 						
@@ -516,7 +491,7 @@
 			
 		 	var VueBestPetition = {
 		 			oninit: function(vnode){
-		 				Petition.BestPetition(vnode.attrs.index)
+		 				Petition.BestPetition()
 		 			},
 					view: function() {
 						
@@ -530,12 +505,14 @@
 							    })
 							),
 							
-							m('a', {'class':'button ',
-										onclick   : function(){
-								              Petition.BestPetition() 
-										}
-								   }, 
-								'voir plus'
+							m('div',{class: 'row justify-content-center pagination pagination_bestPetition', id: 'pagination_bestPetition' },
+								m('a', {'class':'btn btn-primary ',
+										onclick : function(){
+											Petition.BestPetition() 
+										},
+									}, 
+									'voir plus'
+								)
 							),
 							
 						 ])
@@ -603,6 +580,7 @@
 	 				},
 	 				
 					view: function() {
+						console.log("debut affichge")
 					   	return 	m('div', [
 							  m('div', {class:'row justify-content-center'},
 							    [
@@ -704,23 +682,26 @@
 				   		    m('hr'),
 				   		    m('div', {'class':'container'},
 				   		      [
-				   		        m('label', {'for':'uname'}, 
+				   		        m('label',  
 				   		          m('strong', 
 				   		            'Nom'
 				   		          )
 				   		        ),
-				   		        m('input', {'type':'text','id':'name','placeholder':'Entrer le nom de la petition','name':'uname','required':'required'}),
+				   		        m('input', {'type':'text','id':'name','placeholder':'Entrer le nom de la petition','required':'required'}),
 				   		        m('br'),
-				   		        m('label', {'for':'psw'}, 
+				   		        m('label', 
 				   		          m('strong', 
 				   		            'Description'
 				   		          )
 				   		        ),
-				   		        m('input', {'type':'text','id':'description','placeholder':'Décrire votre petition','name':'psw','required':'required'}),
+				   		        m('input', {'type':'text','id':'description','placeholder':'Décrire votre petition','required':'required'}),
 				   		        m('br'),
 				   		     	m('button',{
 									class: 'button is-link',
-									onclick: function() {Verification.nomExistant(document.getElementById("name").value)}
+									onclick: function() {
+										var name = document.getElementById("name").value;
+										Verification.nomExistant(name)}
+									//onclick: function() {Petition.addPetition()}
 							    	},
 							    "Ajouter petition"),
 				   		      ]
@@ -791,8 +772,18 @@
 				    		        		 m('div', {'class':'date_petition_box'}, 
 				    		        			item.attrs.properties.jour + " à " +item.attrs.properties.heure
 											 ),
+											 m('div', {'class':'row justify-content-center box_info_votants'}, 
+												[
+													m('div', {'class':'box_nb_votant_petition'}, 
+															item.attrs.properties.nbvotants
+													),
+													m('div', {'class':'box_signature_votant_petition'}, 
+															item.attrs.properties.nbvotants > 1 ? " Signatures" : " Signature"
+													)
+												]
+											  ),
 					    		        ),
-					    		        m('a', {'class':'btn btn-secondary','href':'#!/detailpetition/'+item.attrs.properties.Key}, 
+					    		        m('a', {'class':'btn btn-secondary','href':'?#!/detailpetition/'+item.attrs.properties.Key}, 
 												'Voir'
 										)
 		    		      		  ]	
@@ -845,7 +836,7 @@
 					view: function(){
 						m('nav', {'class':'navbar navbar-expand-lg navbar-light bg-light'},
 								  [
-								    m('a', {'class':'navbar-brand','href':'/#!/'}, 
+								    m('a', {'class':'navbar-brand','href':'/?#!/'}, 
 								      'Site de Petition'
 								    ),
 								    m('button', {'class':'navbar-toggler','type':'button','data-toggle':'collapse','data-target':'#navbarSupportedContent','aria-controls':'navbarSupportedContent','aria-expanded':'false','aria-label':'Toggle navigation'}, 
@@ -862,22 +853,22 @@
 								            )
 								          ),
 								          m('li', {'class':'nav-item'}, 
-								            m('a', {'class':'nav-link','href':'/#!/top/'}, 
+								            m('a', {'class':'nav-link','href':'/?#!/top/'}, 
 								              'Meilleures petitions'
 								            )
 								          ),
 								          m('li', {'class':'nav-item'}, 
-								            m('a', {'class':'nav-link','href':'/#!/votebyuser'}, 
+								            m('a', {'class':'nav-link','href':'/?#!/votebyuser'}, 
 								              "Petition votées d'un utilisateur"
 								            )
 								          ),
 								          m('li', {'class':'nav-item'}, 
-								            m('a', {'class':'nav-link','href':'/#!/petitionbyname'}, 
+								            m('a', {'class':'nav-link','href':'/?#!/petitionbyname'}, 
 								              'Petition par nom'
 								            )
 								          ),
 								          m('li', {'class':'nav-item'}, 
-								            m('a', {'class':'nav-link','href':'/#!/mypetition'}, 
+								            m('a', {'class':'nav-link','href':'/?#!/mypetition'}, 
 								              'Mes petitions'
 								            )
 								          ),
@@ -902,12 +893,12 @@
 	 	m.route(elem, "/", {
 
 	   		 '/': VueAllPetition,
-	   		 '/top/': VueBestPetition,
+	   		 '/top': VueBestPetition,
 	   		 '/votebyuser': VuelistPetitionVotedByUser,
-	   		 '/petitionbyname/': VuePetition,
+	   		 '/petitionbyname': VuePetition,
 	   		 '/detailpetition/:key': VueDetailPetition,
-	   		 '/addPetition/': VueFormAddPetition,
-	   		 '/mypetition/': VuemyPetition,
+	   		 '/addPetition': VueFormAddPetition,
+	   		 '/mypetition': VuemyPetition,
 		})
 		
 	 	

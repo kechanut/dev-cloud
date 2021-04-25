@@ -15,6 +15,7 @@ import com.google.api.server.spi.config.Nullable;
 //import com.google.api.server.spi.config.Named;
 import com.google.api.server.spi.config.ApiMethod.HttpMethod;
 import com.google.api.server.spi.response.CollectionResponse;
+import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -103,6 +104,7 @@ public class Petition {
 
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		datastore.put(e);
+		System.out.println("valeur de retour "+ e);
 		return e;
 	}
 	
@@ -167,8 +169,8 @@ public class Petition {
 	}
 	
 	@ApiMethod(name = "petitionByName", httpMethod = HttpMethod.GET)
-	public List<Entity>  petitionByName(@Named("name") String name) {
-		System.out.println(name);
+	public List<Entity> petitionByName(@Named("name") String name) {
+		System.out.println("debut de petitionByName avec nom = "+name);
 		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
 		Query q = new Query("Petition")
 				
@@ -185,11 +187,24 @@ public class Petition {
 		PreparedQuery pq = datastore.prepare(q);
 		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(10));
 		System.out.println(result);
+		/*if (result == null) {
+			System.out.println("dans if");
+			return ;
+		}else {
+			System.out.println("dans else");
+			return result;
+		}
+		*/
 		return result;
 	}
+
 	
 	@ApiMethod(name = "myPetition", httpMethod = HttpMethod.GET)
-	public List<Entity> myPetition(@Named("name") String name) {
+	public List<Entity> myPetition(@Named("name") String name) throws UnauthorizedException {
+		
+		if (name == null) {
+			throw new UnauthorizedException("Invalid credentials");
+		}
 		
 		System.out.println("test"+name);
 		//Query q = new Query("Petition").setFilter(new FilterPredicate("__key__", FilterOperator.GREATER_THAN, last.getKey())); 
@@ -202,7 +217,7 @@ public class Petition {
 				//.addProjection(new PropertyProjection("jour", String.class))
 				//.addProjection(new PropertyProjection("heure", String.class))*/
 				
-				.setFilter(new FilterPredicate("createur", FilterOperator.EQUAL, name)).addSort("Key", SortDirection.DESCENDING);
+				.setFilter(new FilterPredicate("createur", FilterOperator.EQUAL, name));
 		
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		PreparedQuery pq = datastore.prepare(q);

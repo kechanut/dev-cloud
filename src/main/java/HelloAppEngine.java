@@ -48,7 +48,7 @@ public class HelloAppEngine extends HttpServlet {
 
 	   	 // Create Petition
 	   	 
-	   	 for (int i = 300; i < 350; i++) {	
+	   	 for (int i = 1; i < 5; i++) {	
 	   		 Date d = new Date();
 	   		 Entity e = new Entity("Petition", Long.MAX_VALUE - new Date().getTime() + "petition"+i); // à améliorer
 	   		 int owner=r.nextInt(1000);
@@ -62,11 +62,12 @@ public class HelloAppEngine extends HttpServlet {
 	   		 
 	   		 // Create random votants
 	   		 HashSet<String> fset = new HashSet<String>();
-	   		// for (int j=0; j<200; j++){
-	   			 fset.add("test" );
-	   		 //}
+	   		 for (int j=0; j<10; j++){
+	   			 fset.add("votant"+j );
+	   		 }
+	   		 fset.add("kevchanut@gmail.com" );
 	   		 e.setProperty("votants", fset);
-	   		 e.setProperty("nbvotants", 5);
+	   		 e.setProperty("nbvotants", 10);
 	   		 
 	   		 // Create random tags
 	   		 HashSet<String> ftags = new HashSet<String>();
