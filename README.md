@@ -12,22 +12,23 @@ Les fonctionnalités suivantes sont implémentées :
 - Recherche de pétitions votées par un utilisateur 
 - Liste des pétitions de l'utilisateur connecté et des pétitions pour lesquelles il a voté
 - Vue détaillée d'une pétition
-- Pagination
+- Pagination sur toutes les listes du site.
 - Authentification Google
+- l'affichage de certains éléments varient en fonction de l'état de l'utilisateur (connecté ou non, créateur ou votant d'une pétition).
 
 <h1> Ce qui ne marche pas </h1>
 
 Malgré les fonctionnalités implémentés, nous n'avons pas réussi à réaliser correctement les points suivants :
 
-- Ne pas faire de projections sur les StringList : lors de certaines requêtes nous n'avons pas besoins de ces listes et elles augmentent juste le temps de traitement du fait de leur grande taille. Le problème est que nous avons tout de même besoin d'une certaine quantité de champs pour afficher toutes les informations à propos des pétitions. Nous sommes donc obligés de tout afficher pour l'instant. Cela peut poser problème dans le cas où il y a beaucoup de votants, ce qui bloquerait le passage à l'échelle.
-- Pagination pour les votants d'une pétition, du fait que nous récupérons les listes de votants. 
+- Ne pas faire de projections sur les StringList : lors de certaines requêtes nous n'avons pas besoins des listes de votants et elles augmentent juste le temps de traitement du fait de leur grande taille. Le problème est que nous avons tout de même besoin d'une certaine quantité de champs pour afficher toutes les informations à propos des pétitions. Nous sommes donc obligés de tout afficher pour l'instant. Cela peut poser problème dans le cas où il y a beaucoup de votants, ce qui bloquerait le passage à l'échelle.
+- Pagination pour les votants d'une pétition, du fait que nous récupérons de base toutes la listes de votants. 
 - La gestion de la concurrence n'est pas implémenté, elle est importante au cas où deux utilisateurs signent en même temps la même pétition même si cela est peu probable. Il faudrait intégrer des transactions lors des signatures.
 
 <h1> Schéma de data </h1>
 
 (Cliquer sur l'image)
 ![unknown](https://user-images.githubusercontent.com/48654824/116001650-b65c3980-a5f5-11eb-8122-11b9169379d9.png)
-Pour la clé de chaque entité, elle est créée comme ceci : TimeStamp inversé + user qui créer la pétition. Pour le TimeStamp nous avons choisi le plus grand entier disponible auquel nous enlevons le timestamp actuel afin d'afficher les résultats du plus récent au plus vieux grâce à cette clé
+Pour la clé de chaque entité, elle est créée comme ceci : TimeStamp inversé + user qui créer la pétition. Pour le TimeStamp nous avons choisi le plus grand entier disponible auquel nous enlevons le timestamp actuel afin de trier les pétitions de la plus récente à la plus ancienne dans le datastore grâce à cette clé. De cette manière, nous n'aurons pas à les ordonnnées dans la requetes pour les afficher par date de création.
 
 <h1> Ce qui pourrait être amélioré </h1>
 
@@ -49,5 +50,10 @@ Pour aller plus loin nous pourrions améliorer certaine méthodes API afin de ga
  
  Voici quelques données pour faire des recherches :
  
- Nom de pétition (recherche par nom) : "Petition331", "groupe-8"
- Nom d'utilisateur : "kevchanut@gmail.com", "ony278@gmail.com", U778
+ L'utilisateur "kevchanut@gmail.com" aura voté pour au moins une quinzaine de pétitions, de cette manière vous pourrez tester la recherche avec la pagination dans la page "Pétitions votées d'un utilisateur".
+ 
+ La recherche par nom aura au maximum 1 seul résultat du fait qu'il n'est pas possible d'ajouter plusieurs pétitions du même nom.
+ 
+ 
+ 
+ 
